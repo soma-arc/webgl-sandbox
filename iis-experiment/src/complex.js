@@ -1,4 +1,80 @@
+import assert from 'power-assert';
 
+const SQRT2 = Math.sqrt(2);
+const EPSILON = 0.0000001;
+
+export default class Complex {
+    constructor(re, im) {
+        assert.ok(typeof re === 'number');
+        assert.ok(typeof im === 'number');
+        this.re = re;
+        this.im = im;
+    }
+
+    add(c) {
+        assert.ok(c instanceof Complex);
+        return new Complex(this.re + c.re,
+                           this.im + c.im);
+    }
+
+    sub(c) {
+        assert.ok(c instanceof Complex);
+        return new Complex(this.re - c.re,
+                           this.im - c.im);
+    }
+
+    mult(c) {
+        assert.ok(c instanceof Complex);
+        return new Complex((this.re * c.re) - (this.im * c.im),
+                           (this.re * c.im) + (this.im * c.re));
+    }
+
+    div(c) {
+        assert.ok(c instanceof Complex);
+        const denom = (c.re * c.re) + (c.im * c.im);
+        if (denom === 0) {
+            return new Complex(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+        }
+
+        return new Complex((this.re * c.re + this.im * c.im) / denom,
+                           (this.im * c.re - this.re * c.im) / denom);
+    }
+
+    static sum (c1, c2) {
+        assert.ok(c1 instanceof Complex);
+        return c1.add(c2);
+    }
+
+    static diff (c1, c2) {
+        assert.ok(c1 instanceof Complex);
+        return c1.sub(c2);
+    }
+
+    static prod (c1, c2) {
+        assert.ok(c1 instanceof Complex);
+        return c1.mult(c2);
+    }
+
+    static quot (c1, c2) {
+        assert.ok(c1 instanceof Complex);
+        return c1.div(c2);
+    }
+
+    scale(k) {
+        assert.ok(typeof k === 'number');
+        return new Complex(this.re * k, this.im * k);
+    }
+
+    arg () {
+        return Math.atan2(this.im, this.re);
+    }
+
+    conjugate () {
+        return new Complex(this.re, -this.im);
+    }
+
+    static conjugate (c) {
+        c.conjugate();
     }
 
     abs () {
