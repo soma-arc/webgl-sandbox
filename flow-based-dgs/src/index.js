@@ -7,154 +7,178 @@ import CommentPlugin from 'rete-comment-plugin';
 import HistoryPlugin from 'rete-history-plugin';
 //import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
 
-const numSocket = new Rete.Socket('Number value');
+class NumberControl {
+    constructor() {
+        this.input = document.createElement( 'input' );
+        this.input.defaultValue = 0;
+        this.input.type = "number";
+        this.input.style.position = 'absolute';
+	    this.input.style.border = 'none';
+	    this.input.style.background = '#aaa';
+	    this.input.style.color = '#444';
 
-const VueNumControl = {
-    props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
-    template: '<input type="number" :readonly="readonly" :value="value" @input="change($event)" @dblclick.stop="" @pointermove.stop=""/>',
-    data: function() {
-        return {
-            value: 0,
-        }
-    },
-    methods: {
-        change(e){
-            this.value = +e.target.value;
-            this.update();
-        },
-        update() {
-            if (this.ikey)
-                this.putData(this.ikey, this.value)
-            this.emitter.trigger('process');
-        }
-    },
-    mounted: function() {
-        this.value = this.getData(this.ikey);
+        document.body.appendChild(this.input);
+    }
+
+    updatePositions(x, y, width) {
+        this.input.style.left = x +'px';
+	    this.input.style.top = y +'px';
+	    this.input.style.width = width +'px';
     }
 }
 
-class NumControl extends Rete.Control {
+class Node {
+    constructor(canvas, x, y, numInputs, numOutputs) {
+        this.canvas = canvas;
+        this.posX = x;
+        this.posY = y;
+        this.numInputs = numInputs;
+        this.numOutputs = numOutputs;
 
-  constructor(emitter, key, readonly) {
-    super(key);
-    this.component = VueNumControl;
-    this.props = { emitter, ikey: key, readonly };
-  }
+        this.width = 150;
+        this.height = 100 + numInputs * 50;
 
-  setValue(val) {
-    this.vueContext.value = val;
-  }
-}
-
-class NumComponent extends Rete.Component {
-
-    constructor(){
-        super("Number");
+        this.title = "";
     }
 
-    builder(node) {
-        const out1 = new Rete.Output('num', "Number", numSocket);
+    draw(ctx) {
+        ctx.fillStyle = "rgb(200, 0, 0)";
+        ctx.fillRect(this.posX, this.posY,
+                     this.width, this.height);
 
-        return node.addControl(new NumControl(this.editor, 'num')).addOutput(out1);
-    }
-
-    worker(node, inputs, outputs) {
-        outputs['num'] = node.data.num;
-    }
-}
-
-class AddComponent extends Rete.Component {
-    constructor(){
-        super("Add");
-    }
-
-    builder(node) {
-        const inp1 = new Rete.Input('num1',"Number", numSocket);
-        const inp2 = new Rete.Input('num2', "Number2", numSocket);
-        const out = new Rete.Output('num', "Number", numSocket);
-
-        inp1.addControl(new NumControl(this.editor, 'num1'))
-        inp2.addControl(new NumControl(this.editor, 'num2'))
-
-        return node
-            .addInput(inp1)
-            .addInput(inp2)
-            .addControl(new NumControl(this.editor, 'preview', true))
-            .addOutput(out);
-    }
-
-    worker(node, inputs, outputs) {
-        const n1 = inputs['num1'].length?inputs['num1'][0]:node.data.num1;
-        const n2 = inputs['num2'].length?inputs['num2'][0]:node.data.num2;
-        const sum = n1 + n2;
+        ctx.beginPath();
+        ctx.fillStyle = "rgb(0, 200, 0)";
+        ctx.arc(this.posX + this.width, this.posY + 50, 10, 0, 2 * Math.PI, true);
+        ctx.fill();
         
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
-        outputs['num'] = sum;
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.font = "20px 'TimesNewRoman'";
+        ctx.fillText(this.title, this.posX + 10, this.posY + 20, this.posX + this.width);
+    }
+
+    isSelected(x, y) {
+        if(this.posX < x && x < this.posX + this.width &&
+           this.posY < y && y < this.posY + this.height) {
+            return true;
+        }
+
+        return false;
     }
 }
 
-// class ComplexComponent extends Rete.Component {
-//     constructor() {
-//         super('Complex');
-//     }
+class NumberNode extends Node {
+    constructor(canvas, x, y) {
+        super(canvas, x, y, 1, 1);
 
-//     builder(node) {
-//         const out = new Rete.Output('num', 'Complex', complexSocket);
+        this.numberControl = new NumberControl();
+        this.updateControl();
 
-//         node.addOutput(out);
-//     }
+        this.title = "Real Number";
+    }
 
-//     worker(node, inputs, outputs) {
-//         outputs['num'] = node.data.num;
-//     }
-// }
+    updateControl() {
+        this.numberControl.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
+    }
+
+}
+
+class ComplexNode extends Node {
+    constructor(canvas, x, y) {
+        super(canvas, x, y, 2, 1);
+
+        this.numberControl1 = new NumberControl();
+        this.numberControl2 = new NumberControl();
+        this.updateControl();
+
+        this.title = "Complex"
+    }
+
+    updateControl() {
+        this.numberControl1.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
+        this.numberControl2.updatePositions(this.posX + 25, this.posY + 150, this.width - 50);
+    }
+}
+
+class QuaternionNode extends Node {
+    constructor(canvas, x, y) {
+        super(canvas, x, y, 4, 1);
+
+        this.numberControl1 = new NumberControl();
+        this.numberControl2 = new NumberControl();
+        this.numberControl3 = new NumberControl();
+        this.numberControl4 = new NumberControl();
+        this.updateControl();
+
+        this.title = "Quaternion"
+    }
+
+    updateControl() {
+        this.numberControl1.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
+        this.numberControl2.updatePositions(this.posX + 25, this.posY + 150, this.width - 50);
+        this.numberControl3.updatePositions(this.posX + 25, this.posY + 200, this.width - 50);
+        this.numberControl4.updatePositions(this.posX + 25, this.posY + 250, this.width - 50);
+    }    
+}
+
+function draw(nodes, ctx) {
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+    ctx.fillRect(0, 0, 512, 512);
+    for(const node of nodes) {
+        node.draw(ctx);
+    }
+}
 
 window.addEventListener('load', async () => {
-    const container = document.querySelector('#rete');
-    container.style.height = 512 + 'px';
-    container.style.width = 512 + 'px';
-    const editor = new Rete.NodeEditor('demo@0.1.0', container);
 
-    editor.use(ConnectionPlugin);
-    editor.use(VueRenderPlugin);
-    let readyMenu = [10, 12, 14];
-    let dontHide = ['click'];
-    editor.use(ContextMenuPlugin);
-    editor.use(AreaPlugin);
-    editor.use(CommentPlugin);
-    editor.use(HistoryPlugin);
-//    editor.use(ConnectionMasteryPlugin.default);
+    const container = document.getElementById('canvas');
+    container.height = 512;
+    container.width = 512;
+    const ctx = container.getContext('2d');
 
-    const numComponent = new NumComponent();
-    const addComponent = new AddComponent();
+    const n = new NumberNode(container, 0, 0);
+    const c = new ComplexNode(container, 100, 0);
+    const q = new QuaternionNode(container, 150, 0);
 
-    const engine = new Rete.Engine('demo@0.1.0');
+    const nodes = [n, c, q];
+    
+    draw(nodes, ctx);
 
-    editor.register(numComponent);
-    engine.register(numComponent);
-    editor.register(addComponent);
-    engine.register(addComponent);
+    let selected = false;
+    let diffX = 0;
+    let diffY = 0;
+    let selectedNode = undefined;
 
-    const n1 = await numComponent.createNode({num: 2});
-    n1.position = [80, 200];
-    const n2 = await numComponent.createNode({num: 0});
-    n2.position = [80, 400];
-    const add = await addComponent.createNode();
-    add.position = [500, 240];
+    container.addEventListener('mousedown', (event) => {
+        const rect = event.target.getBoundingClientRect();
+        const canvasX = event.clientX - rect.left;
+        const canvasY = event.clientY - rect.top;
 
-    editor.addNode(n1);
-    editor.addNode(n2);
-    editor.addNode(add);
-
-    editor.connect(n1.outputs.get('num'), add.inputs.get('num1'));
-    editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
-
-    editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
-        await engine.abort();
-        await engine.process(editor.toJSON());
+        for(const node of nodes) {
+            selected = node.isSelected(canvasX, canvasY)
+            diffX = canvasX - node.posX;
+            diffY = canvasY - node.posY;
+            if(selected) {
+                selectedNode = node;
+                return;
+            }
+        }
     });
 
-    console.log(editor.toJSON());
-    editor.view.resize();
-    editor.trigger('process');
+    container.addEventListener('mousemove', (event) => {
+        if(selectedNode != undefined) {
+            const rect = event.target.getBoundingClientRect();
+            const canvasX = event.clientX - rect.left;
+            const canvasY = event.clientY - rect.top;
+            
+            selectedNode.posX = canvasX - diffX;
+            selectedNode.posY = canvasY - diffY;
+            selectedNode.updateControl();
+            draw(nodes, ctx);
+        }
+    });
+
+    container.addEventListener('mouseup', (event) => {
+        selected = false;
+        selectedNode = undefined;
+    });
 });
