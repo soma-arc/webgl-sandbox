@@ -5,7 +5,15 @@ import ContextMenuPlugin from 'rete-context-menu-plugin'
 import AreaPlugin from 'rete-area-plugin';
 import CommentPlugin from 'rete-comment-plugin';
 import HistoryPlugin from 'rete-history-plugin';
+import Complex from './complex.js';
 //import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
+
+class Socket {
+    constructor(from, to) {
+        this.from = from;
+        this.to = to;
+    }
+}
 
 class NumberControl {
     constructor() {
@@ -24,6 +32,10 @@ class NumberControl {
         this.input.style.left = x +'px';
 	    this.input.style.top = y +'px';
 	    this.input.style.width = width +'px';
+    }
+
+    getValue() {
+        return this.input.value;
     }
 }
 
@@ -50,6 +62,13 @@ class Node {
         ctx.fillStyle = "rgb(0, 200, 0)";
         ctx.arc(this.posX + this.width, this.posY + 50, 10, 0, 2 * Math.PI, true);
         ctx.fill();
+
+        for(let i = 0; i < this.numInputs; i++) {
+            ctx.beginPath();
+            ctx.fillStyle = "rgb(0, 200, 0)";
+            ctx.arc(this.posX, this.posY + 100 + i * 50, 10, 0, 2 * Math.PI, true);
+            ctx.fill();
+        }
         
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.font = "20px 'TimesNewRoman'";
@@ -63,6 +82,10 @@ class Node {
         }
 
         return false;
+    }
+
+    getValue() {
+        return undefined;
     }
 }
 
@@ -80,6 +103,9 @@ class NumberNode extends Node {
         this.numberControl.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
     }
 
+    getValue() {
+        return this.numberControl.getValue();
+    }
 }
 
 class ComplexNode extends Node {
@@ -97,10 +123,15 @@ class ComplexNode extends Node {
         this.numberControl1.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
         this.numberControl2.updatePositions(this.posX + 25, this.posY + 150, this.width - 50);
     }
+
+    getValue() {
+        return new Complex(this.numberControl1.getValue(),
+                           this.numberControl2.getValue());
+    }
 }
 
 class QuaternionNode extends Node {
-    constructor(canvas, x, y) {
+     constructor(canvas, x, y) {
         super(canvas, x, y, 4, 1);
 
         this.numberControl1 = new NumberControl();
