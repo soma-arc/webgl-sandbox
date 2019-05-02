@@ -1,7 +1,7 @@
 import Rete from "rete";
 import ConnectionPlugin from 'rete-connection-plugin';
 import VueRenderPlugin from 'rete-vue-render-plugin';
-import ContextMenuPlugin from 'rete-context-menu-plugin'
+import ContextMenuPlugin from 'rete-context-menu-plugin';
 import AreaPlugin from 'rete-area-plugin';
 import CommentPlugin from 'rete-comment-plugin';
 import HistoryPlugin from 'rete-history-plugin';
@@ -212,4 +212,10 @@ window.addEventListener('load', async () => {
         selected = false;
         selectedNode = undefined;
     });
+
+    container.addEventListener('mouseleave', (event) => {
+        selected = false;
+        selectedNode = undefined;
+    });
 });
+
