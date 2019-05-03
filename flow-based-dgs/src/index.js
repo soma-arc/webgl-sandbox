@@ -51,6 +51,8 @@ class Node {
         this.height = 100 + numInputs * 50;
 
         this.title = "";
+
+        this.socketRadius = 10;
     }
 
     draw(ctx) {
@@ -60,13 +62,15 @@ class Node {
 
         ctx.beginPath();
         ctx.fillStyle = "rgb(0, 200, 0)";
-        ctx.arc(this.posX + this.width, this.posY + 50, 10, 0, 2 * Math.PI, true);
+        ctx.arc(this.posX + this.width, this.posY + 50, this.socketRadius,
+                0, 2 * Math.PI, true);
         ctx.fill();
 
         for(let i = 0; i < this.numInputs; i++) {
             ctx.beginPath();
             ctx.fillStyle = "rgb(0, 200, 0)";
-            ctx.arc(this.posX, this.posY + 100 + i * 50, 10, 0, 2 * Math.PI, true);
+            ctx.arc(this.posX, this.posY + 100 + i * 50, this.socketRadius,
+                    0, 2 * Math.PI, true);
             ctx.fill();
         }
         
@@ -84,8 +88,36 @@ class Node {
         return false;
     }
 
+    selectSocket(x, y) {
+        // output
+        const dx = this.posX + this.width - x;
+        const dy = this.posY + 50 - y;        
+        if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
+            return [true, 0, SELECT_OUTPUT];
+        }
+
+        // input
+        for(let i = 0; i < this.numInputs; i++) {
+            const dx = this.posX - x;
+            const dy = this.posY + 100 + i * 50 - y;
+            if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
+                return [true, i, SELECT_INPUT];
+            }
+        }
+
+        return [false, -1];
+    }
+
     getValue() {
         return undefined;
+    }
+
+    static get SELECT_INPUT() {
+        return 0;
+    }
+
+    static get SELECT_OUTPUT() {
+        return 1;
     }
 }
 
@@ -118,7 +150,7 @@ class ComplexNode extends Node {
 
         this.title = "Complex"
     }
-
+ 
     updateControl() {
         this.numberControl1.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
         this.numberControl2.updatePositions(this.posX + 25, this.posY + 150, this.width - 50);
@@ -151,11 +183,30 @@ class QuaternionNode extends Node {
     }    
 }
 
+let selected = false;
+let diffX = 0;
+let diffY = 0;
+let selectedNode = undefined;
+const MOUSE_STATE_NONE = 0;
+const MOUSE_STATE_CLICK_SOCKET = 1;
+let mouseState = MOUSE_STATE_NONE;
+
 function draw(nodes, ctx) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, 512, 512);
     for(const node of nodes) {
         node.draw(ctx);
+    }
+
+    if(mouseState === MOUSE_STATE_CLICK_SOCKET) {
+        /*
+        const dx = this.posX + this.width - x;
+        const dy = this.posY + 50 - y; 
+        ctx.beginPath();
+        moveTo(x, y);
+        lineTo(canvasX, canvasY);
+        stroke();
+        */
     }
 }
 
@@ -173,18 +224,20 @@ window.addEventListener('load', async () => {
     const nodes = [n, c, q];
     
     draw(nodes, ctx);
-
-    let selected = false;
-    let diffX = 0;
-    let diffY = 0;
-    let selectedNode = undefined;
-
+    
     container.addEventListener('mousedown', (event) => {
         const rect = event.target.getBoundingClientRect();
         const canvasX = event.clientX - rect.left;
         const canvasY = event.clientY - rect.top;
 
         for(const node of nodes) {
+            const socket = node.selectSocket(canvasX, canvasY);
+            if (socket[0] === true) {
+                console.log('click');
+                mouseState = MOUSE_STATE_CLICK_SOCKET;
+                selectedNode = node;
+                return;
+            }
             selected = node.isSelected(canvasX, canvasY)
             diffX = canvasX - node.posX;
             diffY = canvasY - node.posY;
