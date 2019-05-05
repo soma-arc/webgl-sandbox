@@ -9,9 +9,44 @@ import Complex from './complex.js';
 //import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
 
 class Socket {
-    constructor(from, to) {
-        this.from = from;
-        this.to = to;
+    constructor(parentNode, n, inout) {
+        this.parentNode = parentNode;
+        this.index = n;
+        this.inout = inout;
+        
+        this.updatePositions();
+        
+        this.socketRadius = 10;
+    }
+
+    updatePositions() {
+        //this.posX = x;
+        //this.posY = y;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.fillStyle = "rgb(0, 200, 0)";
+        ctx.arc(this.posX, this.posY, this.socketRadius,
+                0, 2 * Math.PI, true);
+        ctx.fill();
+    }
+
+    isSelected(x, y) {
+        const dx = posX - x;
+        const dy = posY - y;
+        if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
+            return true;
+        }
+        return false;
+    }
+
+    static get SOCKET_INPUT() {
+        return 0;
+    }
+
+    static get SOCKET_OUTPUT() {
+        return 1;
     }
 }
 
@@ -93,7 +128,9 @@ class Node {
         const dx = this.posX + this.width - x;
         const dy = this.posY + 50 - y;        
         if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
-            return [true, 0, SELECT_OUTPUT];
+            return [true, 0, Node.SELECT_OUTPUT,
+                    this.posX + this.width,
+                    this.posY + 50];
         }
 
         // input
@@ -101,11 +138,13 @@ class Node {
             const dx = this.posX - x;
             const dy = this.posY + 100 + i * 50 - y;
             if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
-                return [true, i, SELECT_INPUT];
+                return [true, i, Node.SELECT_INPUT,
+                        this.posX,
+                        this.posY + 100 + i * 50];
             }
         }
 
-        return [false, -1];
+        return [false, -1, -1];
     }
 
     getValue() {
@@ -190,23 +229,40 @@ let selectedNode = undefined;
 const MOUSE_STATE_NONE = 0;
 const MOUSE_STATE_CLICK_SOCKET = 1;
 let mouseState = MOUSE_STATE_NONE;
+let selectedSocket = undefined;
+const connectedNodes = [];
 
-function draw(nodes, ctx) {
+function draw(nodes, ctx, x, y) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, 512, 512);
-    for(const node of nodes) {
-        node.draw(ctx);
+
+    if(mouseState === MOUSE_STATE_CLICK_SOCKET &&
+       selectedSocket != undefined) {
+        if (selectedSocket[2] === Node.SELECT_INPUT) {
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(selectedSocket[3], selectedSocket[4]);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        } else if (selectedSocket[2] === Node.SELECT_OUTPUT) {
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(selectedSocket[3], selectedSocket[4]);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
     }
 
-    if(mouseState === MOUSE_STATE_CLICK_SOCKET) {
-        /*
-        const dx = this.posX + this.width - x;
-        const dy = this.posY + 50 - y; 
+    for(const pair of connectedNodes) {
+        ctx.lineWidth = 5;
         ctx.beginPath();
-        moveTo(x, y);
-        lineTo(canvasX, canvasY);
-        stroke();
-        */
+        ctx.moveTo(pair[0][3], pair[0][4]);
+        ctx.lineTo(pair[1][3], pair[1][4]);
+        ctx.stroke();
+    }
+    
+    for(const node of nodes) {
+        node.draw(ctx);
     }
 }
 
@@ -223,19 +279,30 @@ window.addEventListener('load', async () => {
 
     const nodes = [n, c, q];
     
-    draw(nodes, ctx);
+    draw(nodes, ctx, 0, 0);
     
     container.addEventListener('mousedown', (event) => {
         const rect = event.target.getBoundingClientRect();
         const canvasX = event.clientX - rect.left;
         const canvasY = event.clientY - rect.top;
-
+        selectedNode = undefined;
+        
         for(const node of nodes) {
             const socket = node.selectSocket(canvasX, canvasY);
+
+            if(selectedSocket != undefined &&
+               socket[0] != false) {
+                console.log('connect');
+                mouseState = MOUSE_STATE_NONE;
+                connectedNodes.push([socket, selectedSocket]);
+                break;
+            }
+            
             if (socket[0] === true) {
                 console.log('click');
+                selectedSocket = socket;
                 mouseState = MOUSE_STATE_CLICK_SOCKET;
-                selectedNode = node;
+                //selectedNode = node;
                 return;
             }
             selected = node.isSelected(canvasX, canvasY)
@@ -246,18 +313,23 @@ window.addEventListener('load', async () => {
                 return;
             }
         }
+        selectedSocket = undefined;
+        draw(nodes, ctx, 0, 0);
     });
 
     container.addEventListener('mousemove', (event) => {
+        const rect = event.target.getBoundingClientRect();
+        const canvasX = event.clientX - rect.left;
+        const canvasY = event.clientY - rect.top;
         if(selectedNode != undefined) {
-            const rect = event.target.getBoundingClientRect();
-            const canvasX = event.clientX - rect.left;
-            const canvasY = event.clientY - rect.top;
-            
             selectedNode.posX = canvasX - diffX;
             selectedNode.posY = canvasY - diffY;
             selectedNode.updateControl();
-            draw(nodes, ctx);
+            draw(nodes, ctx, 0, 0);
+        }
+
+        if(selectedSocket != undefined) {
+            draw(nodes, ctx, canvasX, canvasY);
         }
     });
 
