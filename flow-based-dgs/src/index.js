@@ -9,22 +9,22 @@ import Complex from './complex.js';
 //import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
 
 class Socket {
-    constructor(parentNode, n, inout) {
+    constructor(parentNode, n, inout, x, y) {
         this.parentNode = parentNode;
         this.index = n;
         this.inout = inout;
-        
-        this.updatePositions();
-        
+        this.posX = x;
+        this.posY = y;
+
         this.socketRadius = 10;
     }
 
-    updatePositions() {
-        //this.posX = x;
-        //this.posY = y;
+    setPosition(x, y) {
+        this.posX = x;
+        this.posY = y;
     }
 
-    draw() {
+    draw(ctx) {
         ctx.beginPath();
         ctx.fillStyle = "rgb(0, 200, 0)";
         ctx.arc(this.posX, this.posY, this.socketRadius,
@@ -33,8 +33,8 @@ class Socket {
     }
 
     isSelected(x, y) {
-        const dx = posX - x;
-        const dy = posY - y;
+        const dx = this.posX - x;
+        const dy = this.posY - y;
         if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
             return true;
         }
@@ -63,7 +63,7 @@ class NumberControl {
         document.body.appendChild(this.input);
     }
 
-    updatePositions(x, y, width) {
+    setPosition(x, y, width) {
         this.input.style.left = x +'px';
 	    this.input.style.top = y +'px';
 	    this.input.style.width = width +'px';
@@ -75,19 +75,29 @@ class NumberControl {
 }
 
 class Node {
-    constructor(canvas, x, y, numInputs, numOutputs) {
+    constructor(canvas, x, y, numInputs, numOutputs, title) {
         this.canvas = canvas;
         this.posX = x;
         this.posY = y;
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
+        this.title = title;
+
+        this.inputSockets = [];
+        this.outputSockets = [];
 
         this.width = 150;
         this.height = 100 + numInputs * 50;
+        
+        for(let i = 0; i < this.numInputs; i++) {
+            this.inputSockets.push(new Socket(this, i, Socket.SOCKET_INPUT,
+                                              this.posX, this.posY + 100 + i * 50));
+        }
+        for(let i = 0; i < this.numOutputs; i++) {
+            this.outputSockets.push(new Socket(this, i, Socket.SOCKET_OUTPUT,
+                                               this.posX + this.width, this.posY + 50 + i * 50));
+        }
 
-        this.title = "";
-
-        this.socketRadius = 10;
     }
 
     draw(ctx) {
@@ -95,20 +105,14 @@ class Node {
         ctx.fillRect(this.posX, this.posY,
                      this.width, this.height);
 
-        ctx.beginPath();
-        ctx.fillStyle = "rgb(0, 200, 0)";
-        ctx.arc(this.posX + this.width, this.posY + 50, this.socketRadius,
-                0, 2 * Math.PI, true);
-        ctx.fill();
-
-        for(let i = 0; i < this.numInputs; i++) {
-            ctx.beginPath();
-            ctx.fillStyle = "rgb(0, 200, 0)";
-            ctx.arc(this.posX, this.posY + 100 + i * 50, this.socketRadius,
-                    0, 2 * Math.PI, true);
-            ctx.fill();
+        for(let socket of this.inputSockets) {
+            socket.draw(ctx);
         }
-        
+
+        for(let socket of this.outputSockets) {
+            socket.draw(ctx);
+        }
+
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.font = "20px 'TimesNewRoman'";
         ctx.fillText(this.title, this.posX + 10, this.posY + 20, this.posX + this.width);
@@ -124,54 +128,54 @@ class Node {
     }
 
     selectSocket(x, y) {
-        // output
-        const dx = this.posX + this.width - x;
-        const dy = this.posY + 50 - y;        
-        if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
-            return [true, 0, Node.SELECT_OUTPUT,
-                    this.posX + this.width,
-                    this.posY + 50];
+        for(let socket of this.inputSockets) {
+            if(socket.isSelected(x, y)) {
+                return socket;
+            }
         }
-
-        // input
-        for(let i = 0; i < this.numInputs; i++) {
-            const dx = this.posX - x;
-            const dy = this.posY + 100 + i * 50 - y;
-            if(Math.sqrt(dx * dx + dy * dy) < this.socketRadius) {
-                return [true, i, Node.SELECT_INPUT,
-                        this.posX,
-                        this.posY + 100 + i * 50];
+        for(let socket of this.outputSockets) {
+            if(socket.isSelected(x, y)) {
+                return socket;
             }
         }
 
-        return [false, -1, -1];
+        return undefined;
     }
+
+    updateControl() {}
 
     getValue() {
         return undefined;
     }
 
-    static get SELECT_INPUT() {
-        return 0;
-    }
+    setPosition(x, y) {
+        this.posX = x;
+        this.posY = y;
+        this.updateControl();
 
-    static get SELECT_OUTPUT() {
-        return 1;
+        let i = 0;
+        for(let socket of this.inputSockets) {
+            socket.setPosition(this.posX, this.posY + 100 + i * 50);
+            i++;
+        }
+        i = 0;
+        for(let socket of this.outputSockets) {
+            socket.setPosition(this.posX + this.width, this.posY + 50 + i * 50);
+            i++;
+        }
     }
 }
 
 class NumberNode extends Node {
     constructor(canvas, x, y) {
-        super(canvas, x, y, 1, 1);
+        super(canvas, x, y, 1, 1, "Real Number");
 
         this.numberControl = new NumberControl();
         this.updateControl();
-
-        this.title = "Real Number";
     }
 
     updateControl() {
-        this.numberControl.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
+        this.numberControl.setPosition(this.posX + 25, this.posY + 100, this.width - 50);
     }
 
     getValue() {
@@ -181,18 +185,17 @@ class NumberNode extends Node {
 
 class ComplexNode extends Node {
     constructor(canvas, x, y) {
-        super(canvas, x, y, 2, 1);
+        super(canvas, x, y, 2, 1, "Complex");
 
         this.numberControl1 = new NumberControl();
         this.numberControl2 = new NumberControl();
         this.updateControl();
 
-        this.title = "Complex"
     }
- 
+
     updateControl() {
-        this.numberControl1.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
-        this.numberControl2.updatePositions(this.posX + 25, this.posY + 150, this.width - 50);
+        this.numberControl1.setPosition(this.posX + 25, this.posY + 100, this.width - 50);
+        this.numberControl2.setPosition(this.posX + 25, this.posY + 150, this.width - 50);
     }
 
     getValue() {
@@ -203,64 +206,62 @@ class ComplexNode extends Node {
 
 class QuaternionNode extends Node {
      constructor(canvas, x, y) {
-        super(canvas, x, y, 4, 1);
+         super(canvas, x, y, 4, 1, "Quaternion");
 
         this.numberControl1 = new NumberControl();
         this.numberControl2 = new NumberControl();
         this.numberControl3 = new NumberControl();
         this.numberControl4 = new NumberControl();
         this.updateControl();
-
-        this.title = "Quaternion"
     }
 
     updateControl() {
-        this.numberControl1.updatePositions(this.posX + 25, this.posY + 100, this.width - 50);
-        this.numberControl2.updatePositions(this.posX + 25, this.posY + 150, this.width - 50);
-        this.numberControl3.updatePositions(this.posX + 25, this.posY + 200, this.width - 50);
-        this.numberControl4.updatePositions(this.posX + 25, this.posY + 250, this.width - 50);
-    }    
+        this.numberControl1.setPosition(this.posX + 25, this.posY + 100, this.width - 50);
+        this.numberControl2.setPosition(this.posX + 25, this.posY + 150, this.width - 50);
+        this.numberControl3.setPosition(this.posX + 25, this.posY + 200, this.width - 50);
+        this.numberControl4.setPosition(this.posX + 25, this.posY + 250, this.width - 50);
+    }
 }
 
-let selected = false;
-let diffX = 0;
-let diffY = 0;
-let selectedNode = undefined;
 const MOUSE_STATE_NONE = 0;
 const MOUSE_STATE_CLICK_SOCKET = 1;
-let mouseState = MOUSE_STATE_NONE;
-let selectedSocket = undefined;
 const connectedNodes = [];
+
+let mouseState = {state: MOUSE_STATE_NONE,
+                  selectedNode: undefined,
+                  selectedSocket: undefined,
+                  diffX: 0,
+                  diffY: 0};
 
 function draw(nodes, ctx, x, y) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, 512, 512);
 
-    if(mouseState === MOUSE_STATE_CLICK_SOCKET &&
-       selectedSocket != undefined) {
-        if (selectedSocket[2] === Node.SELECT_INPUT) {
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.moveTo(selectedSocket[3], selectedSocket[4]);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        } else if (selectedSocket[2] === Node.SELECT_OUTPUT) {
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.moveTo(selectedSocket[3], selectedSocket[4]);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-    }
+    // if(mouseState === MOUSE_STATE_CLICK_SOCKET &&
+    //    selectedSocket != undefined) {
+    //     if (selectedSocket[2] === Node.SELECT_INPUT) {
+    //         ctx.lineWidth = 5;
+    //         ctx.beginPath();
+    //         ctx.moveTo(selectedSocket[3], selectedSocket[4]);
+    //         ctx.lineTo(x, y);
+    //         ctx.stroke();
+    //     } else if (selectedSocket[2] === Node.SELECT_OUTPUT) {
+    //         ctx.lineWidth = 5;
+    //         ctx.beginPath();
+    //         ctx.moveTo(selectedSocket[3], selectedSocket[4]);
+    //         ctx.lineTo(x, y);
+    //         ctx.stroke();
+    //     }
+    // }
 
-    for(const pair of connectedNodes) {
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(pair[0][3], pair[0][4]);
-        ctx.lineTo(pair[1][3], pair[1][4]);
-        ctx.stroke();
-    }
-    
+    // for(const pair of connectedNodes) {
+    //     ctx.lineWidth = 5;
+    //     ctx.beginPath();
+    //     ctx.moveTo(pair[0][3], pair[0][4]);
+    //     ctx.lineTo(pair[1][3], pair[1][4]);
+    //     ctx.stroke();
+    // }
+
     for(const node of nodes) {
         node.draw(ctx);
     }
@@ -278,42 +279,25 @@ window.addEventListener('load', async () => {
     const q = new QuaternionNode(container, 150, 0);
 
     const nodes = [n, c, q];
-    
+
     draw(nodes, ctx, 0, 0);
-    
+
     container.addEventListener('mousedown', (event) => {
         const rect = event.target.getBoundingClientRect();
         const canvasX = event.clientX - rect.left;
         const canvasY = event.clientY - rect.top;
-        selectedNode = undefined;
-        
-        for(const node of nodes) {
-            const socket = node.selectSocket(canvasX, canvasY);
 
-            if(selectedSocket != undefined &&
-               socket[0] != false) {
-                console.log('connect');
-                mouseState = MOUSE_STATE_NONE;
-                connectedNodes.push([socket, selectedSocket]);
-                break;
+        for(const node of nodes) {
+            if (node.isSelected(canvasX, canvasY)) {
+                mouseState.diffX = canvasX - node.posX;
+                mouseState.diffY = canvasY - node.posY;
+                mouseState.selectedNode = node;
             }
-            
-            if (socket[0] === true) {
-                console.log('click');
-                selectedSocket = socket;
-                mouseState = MOUSE_STATE_CLICK_SOCKET;
-                //selectedNode = node;
-                return;
-            }
-            selected = node.isSelected(canvasX, canvasY)
-            diffX = canvasX - node.posX;
-            diffY = canvasY - node.posY;
-            if(selected) {
-                selectedNode = node;
-                return;
+            const socket = node.selectSocket(canvasX, canvasY)
+            if(socket != undefined) {
+                
             }
         }
-        selectedSocket = undefined;
         draw(nodes, ctx, 0, 0);
     });
 
@@ -321,26 +305,18 @@ window.addEventListener('load', async () => {
         const rect = event.target.getBoundingClientRect();
         const canvasX = event.clientX - rect.left;
         const canvasY = event.clientY - rect.top;
-        if(selectedNode != undefined) {
-            selectedNode.posX = canvasX - diffX;
-            selectedNode.posY = canvasY - diffY;
-            selectedNode.updateControl();
+        if(mouseState.selectedNode != undefined) {
+            mouseState.selectedNode.setPosition(canvasX - mouseState.diffX,
+                                                canvasY - mouseState.diffY);
             draw(nodes, ctx, 0, 0);
-        }
-
-        if(selectedSocket != undefined) {
-            draw(nodes, ctx, canvasX, canvasY);
         }
     });
 
     container.addEventListener('mouseup', (event) => {
-        selected = false;
-        selectedNode = undefined;
+        mouseState.selectedNode = undefined;
     });
 
     container.addEventListener('mouseleave', (event) => {
-        selected = false;
-        selectedNode = undefined;
+        mouseState.selectedNode = undefined;
     });
 });
-
