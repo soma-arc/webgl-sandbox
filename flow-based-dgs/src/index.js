@@ -225,6 +225,7 @@ class QuaternionNode extends Node {
 
 const MOUSE_STATE_NONE = 0;
 const MOUSE_STATE_CLICK_SOCKET = 1;
+const MOUSE_STATE_DRAG_BODY = 2;
 const connectedNodes = [];
 
 let mouseState = {state: MOUSE_STATE_NONE,
@@ -236,23 +237,16 @@ let mouseState = {state: MOUSE_STATE_NONE,
 function draw(nodes, ctx, x, y) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, 512, 512);
-
-    // if(mouseState === MOUSE_STATE_CLICK_SOCKET &&
-    //    selectedSocket != undefined) {
-    //     if (selectedSocket[2] === Node.SELECT_INPUT) {
-    //         ctx.lineWidth = 5;
-    //         ctx.beginPath();
-    //         ctx.moveTo(selectedSocket[3], selectedSocket[4]);
-    //         ctx.lineTo(x, y);
-    //         ctx.stroke();
-    //     } else if (selectedSocket[2] === Node.SELECT_OUTPUT) {
-    //         ctx.lineWidth = 5;
-    //         ctx.beginPath();
-    //         ctx.moveTo(selectedSocket[3], selectedSocket[4]);
-    //         ctx.lineTo(x, y);
-    //         ctx.stroke();
-    //     }
-    // }
+    
+    if (mouseState.state === MOUSE_STATE_CLICK_SOCKET &&
+        mouseState.selectedSocket != undefined) {
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(mouseState.selectedSocket.posX, mouseState.selectedSocket.posY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+    }
 
     // for(const pair of connectedNodes) {
     //     ctx.lineWidth = 5;
@@ -266,6 +260,8 @@ function draw(nodes, ctx, x, y) {
         node.draw(ctx);
     }
 }
+
+const connections = [];
 
 window.addEventListener('load', async () => {
 
@@ -288,17 +284,28 @@ window.addEventListener('load', async () => {
         const canvasY = event.clientY - rect.top;
 
         for(const node of nodes) {
-            if (node.isSelected(canvasX, canvasY)) {
+            const socket = node.selectSocket(canvasX, canvasY)
+            if (socket != undefined &&
+                mouseState.state === MOUSE_STATE_CLICK_SOCKET ) {
+                mouseState.state = MOUSE_STATE_NONE;
+                console.log('connect');
+            } else if(socket != undefined) {
+                mouseState.state = MOUSE_STATE_CLICK_SOCKET;
+                mouseState.selectedSocket = socket;
+                break;
+            } else if (socket === undefined &&
+                       mouseState.state === MOUSE_STATE_CLICK_SOCKET) {
+                mouseState.selectedSocket = undefined;
+                mouseState.state = MOUSE_STATE_NONE;
+            }  else if (node.isSelected(canvasX, canvasY)) {
                 mouseState.diffX = canvasX - node.posX;
                 mouseState.diffY = canvasY - node.posY;
                 mouseState.selectedNode = node;
-            }
-            const socket = node.selectSocket(canvasX, canvasY)
-            if(socket != undefined) {
-                
+                mouseState.state = MOUSE_STATE_DRAG_BODY;
+                break;
             }
         }
-        draw(nodes, ctx, 0, 0);
+        draw(nodes, ctx, canvasX, canvasY);
     });
 
     container.addEventListener('mousemove', (event) => {
@@ -309,6 +316,8 @@ window.addEventListener('load', async () => {
             mouseState.selectedNode.setPosition(canvasX - mouseState.diffX,
                                                 canvasY - mouseState.diffY);
             draw(nodes, ctx, 0, 0);
+        } else if (mouseState.selectedSocket != undefined) {
+            draw(nodes, ctx, canvasX, canvasY);
         }
     });
 
