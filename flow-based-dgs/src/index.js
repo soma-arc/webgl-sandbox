@@ -31,6 +31,8 @@ class Socket {
 
         this.connectedSockets = [];
         this.id = randomstr();
+
+        this.value;
     }
 
     isSame(socket) {
@@ -60,6 +62,10 @@ class Socket {
         return false;
     }
 
+    setValue(value) {
+        this.value = value;
+    }
+
     static get SOCKET_INPUT() {
         return 0;
     }
@@ -70,9 +76,9 @@ class Socket {
 }
 
 class Connection {
-    constructor(socket1, socket2) {
-        this.socket1 = socket1;
-        this.socket2 = socket2;
+    constructor(socketIn, socketOut) {
+        this.socketIn = socketIn;
+        this.socketOut = socketOut;
         this.id = randomstr();
     }
 
@@ -80,8 +86,8 @@ class Connection {
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.lineWidth = 5;
         ctx.beginPath();
-        ctx.moveTo(this.socket1.posX, this.socket1.posY);
-        ctx.lineTo(this.socket2.posX, this.socket2.posY);
+        ctx.moveTo(this.socketIn.posX, this.socketIn.posY);
+        ctx.lineTo(this.socketOut.posX, this.socketOut.posY);
         ctx.stroke();
     }
 }
@@ -238,6 +244,10 @@ class ComplexNode extends Node {
         return new Complex(this.numberControl1.getValue(),
                            this.numberControl2.getValue());
     }
+
+    updateParent() {
+        this.getValue();
+    }
 }
 
 class QuaternionNode extends Node {
@@ -262,6 +272,13 @@ class QuaternionNode extends Node {
 class ComplexAddNode extends Node {
     constructor(canvas, x, y) {
         super(canvas, x, y, 2, 1, "ComplexAdd");
+
+        this.complex1 = new Complex(0, 0);
+        this.complex2 = new Complex(0, 0);
+    }
+
+    getValue() {
+        return this.complex1.add(this.complex2);
     }
 }
 
@@ -277,6 +294,13 @@ let mouseState = {state: MOUSE_STATE_NONE,
                   diffY: 0};
 
 const connections = [];
+
+function updateConnection() {
+    for (let connection of connections) {
+        const v = connection.socketOut.parentNode.getValue();
+        connection.socketIn.setValue(v);
+    }
+}
 
 function draw(nodes, ctx, x, y) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
@@ -361,6 +385,7 @@ window.addEventListener('load', async () => {
                 connections.push(new Connection(socket, mouseState.selectedSocket));
                 mouseState.state = MOUSE_STATE_NONE;
                 mouseState.selectedSocket = undefined;
+                updateConnection();
             } else {
                 console.log('break click socket2');
                 mouseState.selectedSocket = undefined;
