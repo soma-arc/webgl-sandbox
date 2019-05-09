@@ -8,6 +8,17 @@ import HistoryPlugin from 'rete-history-plugin';
 import Complex from './complex.js';
 //import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
 
+function randomstr(length) {
+  var s = "";
+  length = length || 32;
+  for (let i = 0; i < length; i++) {
+      let random = Math.random() * 16 | 0;
+      s += (i == 12 ? 4 : (i == 16 ? (random & 3 | 8) : random)).toString(16);
+  }
+
+  return s;
+}
+
 class Socket {
     constructor(parentNode, n, inout, x, y) {
         this.parentNode = parentNode;
@@ -17,6 +28,14 @@ class Socket {
         this.posY = y;
 
         this.socketRadius = 10;
+
+        this.connectedSockets = [];
+        this.id = randomstr();
+    }
+
+    isSame(socket) {
+        console.log(socket);
+        return this.id === socket.id;
     }
 
     setPosition(x, y) {
@@ -47,6 +66,23 @@ class Socket {
 
     static get SOCKET_OUTPUT() {
         return 1;
+    }
+}
+
+class Connection {
+    constructor(socket1, socket2) {
+        this.socket1 = socket1;
+        this.socket2 = socket2;
+        this.id = randomstr();
+    }
+
+    draw(ctx) {
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(this.socket1.posX, this.socket1.posY);
+        ctx.lineTo(this.socket2.posX, this.socket2.posY);
+        ctx.stroke();
     }
 }
 
@@ -97,7 +133,7 @@ class Node {
             this.outputSockets.push(new Socket(this, i, Socket.SOCKET_OUTPUT,
                                                this.posX + this.width, this.posY + 50 + i * 50));
         }
-
+        this.id = randomstr();
     }
 
     draw(ctx) {
@@ -223,6 +259,12 @@ class QuaternionNode extends Node {
     }
 }
 
+class ComplexAddNode extends Node {
+    constructor(canvas, x, y) {
+        super(canvas, x, y, 2, 1, "ComplexAdd");
+    }
+}
+
 const MOUSE_STATE_NONE = 0;
 const MOUSE_STATE_CLICK_SOCKET = 1;
 const MOUSE_STATE_DRAG_BODY = 2;
@@ -234,9 +276,11 @@ let mouseState = {state: MOUSE_STATE_NONE,
                   diffX: 0,
                   diffY: 0};
 
+const connections = [];
+
 function draw(nodes, ctx, x, y) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 1024, 1024);
     
     if (mouseState.state === MOUSE_STATE_CLICK_SOCKET &&
         mouseState.selectedSocket != undefined) {
@@ -248,33 +292,30 @@ function draw(nodes, ctx, x, y) {
         ctx.stroke();
     }
 
-    // for(const pair of connectedNodes) {
-    //     ctx.lineWidth = 5;
-    //     ctx.beginPath();
-    //     ctx.moveTo(pair[0][3], pair[0][4]);
-    //     ctx.lineTo(pair[1][3], pair[1][4]);
-    //     ctx.stroke();
-    // }
+    for(const connection of connections) {
+        connection.draw(ctx);
+    }
 
     for(const node of nodes) {
         node.draw(ctx);
     }
 }
 
-const connections = [];
-
 window.addEventListener('load', async () => {
-
+    const width = 1024;
+    const height = 1024;
     const container = document.getElementById('canvas');
-    container.height = 512;
-    container.width = 512;
+    container.width = width;
+    container.height = height;
     const ctx = container.getContext('2d');
 
     const n = new NumberNode(container, 0, 0);
-    const c = new ComplexNode(container, 100, 0);
-    const q = new QuaternionNode(container, 150, 0);
+    const c = new ComplexNode(container, 200, 0);
+    const c2= new ComplexNode(container, 300, 0);
+    const add = new ComplexAddNode(container, 400, 0);
+    //const q = new QuaternionNode(container, 150, 0);
 
-    const nodes = [n, c, q];
+    const nodes = [n, c, c2, add];
 
     draw(nodes, ctx, 0, 0);
 
@@ -283,28 +324,50 @@ window.addEventListener('load', async () => {
         const canvasX = event.clientX - rect.left;
         const canvasY = event.clientY - rect.top;
 
+        let socket;
+        let node;
+        
         for(const node of nodes) {
-            const socket = node.selectSocket(canvasX, canvasY)
-            if (socket != undefined &&
-                mouseState.state === MOUSE_STATE_CLICK_SOCKET ) {
-                mouseState.state = MOUSE_STATE_NONE;
-                console.log('connect');
-            } else if(socket != undefined) {
-                mouseState.state = MOUSE_STATE_CLICK_SOCKET;
-                mouseState.selectedSocket = socket;
-                break;
-            } else if (socket === undefined &&
-                       mouseState.state === MOUSE_STATE_CLICK_SOCKET) {
+            socket = node.selectSocket(canvasX, canvasY);
+            if (socket != undefined) break;
+        }
+        if (socket === undefined) {
+            // did not click socket
+            if (mouseState.state === MOUSE_STATE_CLICK_SOCKET) {
+                console.log('break click socket');
                 mouseState.selectedSocket = undefined;
                 mouseState.state = MOUSE_STATE_NONE;
-            }  else if (node.isSelected(canvasX, canvasY)) {
-                mouseState.diffX = canvasX - node.posX;
-                mouseState.diffY = canvasY - node.posY;
-                mouseState.selectedNode = node;
-                mouseState.state = MOUSE_STATE_DRAG_BODY;
-                break;
+            } else {
+                for(const node of nodes) {
+                    if (node.isSelected(canvasX, canvasY)) {
+                        console.log('drag body')
+                        mouseState.diffX = canvasX - node.posX;
+                        mouseState.diffY = canvasY - node.posY;
+                        mouseState.selectedNode = node;
+                        mouseState.state = MOUSE_STATE_DRAG_BODY;
+                        return;
+                    }
+                }
+            }
+        } else {
+            // click socket
+            if (mouseState.state === MOUSE_STATE_NONE) {
+                console.log('click socket'); // display connection line
+                mouseState.state = MOUSE_STATE_CLICK_SOCKET;
+                mouseState.selectedSocket = socket;
+            } else if (mouseState.state === MOUSE_STATE_CLICK_SOCKET &&
+                       socket.parentNode.id != mouseState.selectedSocket.parentNode.id ) {
+                console.log('connect');
+                connections.push(new Connection(socket, mouseState.selectedSocket));
+                mouseState.state = MOUSE_STATE_NONE;
+                mouseState.selectedSocket = undefined;
+            } else {
+                console.log('break click socket2');
+                mouseState.selectedSocket = undefined;
+                mouseState.state = MOUSE_STATE_NONE;
             }
         }
+        
         draw(nodes, ctx, canvasX, canvasY);
     });
 
@@ -323,9 +386,15 @@ window.addEventListener('load', async () => {
 
     container.addEventListener('mouseup', (event) => {
         mouseState.selectedNode = undefined;
+        if(mouseState.state === MOUSE_STATE_DRAG_BODY) {
+            mouseState.state = MOUSE_STATE_NONE;
+        }
     });
 
     container.addEventListener('mouseleave', (event) => {
         mouseState.selectedNode = undefined;
+        if(mouseState.state === MOUSE_STATE_DRAG_BODY) {
+            mouseState.state = MOUSE_STATE_NONE;
+        }
     });
 });
