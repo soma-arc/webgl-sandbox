@@ -8,6 +8,7 @@ import HistoryPlugin from 'rete-history-plugin';
 import Complex from './complex.js';
 //import ConnectionMasteryPlugin from 'rete-connection-mastery-plugin';
 
+// https://qiita.com/coa00/items/679b0b5c7c468698d53f
 function randomstr(length) {
   var s = "";
   length = length || 32;
@@ -29,10 +30,15 @@ class Socket {
 
         this.socketRadius = 10;
 
-        this.connectedSockets = [];
         this.id = randomstr();
 
         this.value;
+
+        this.controls = [];
+    }
+
+    addControl(control) {
+        this.controls.push(control);
     }
 
     isSame(socket) {
@@ -66,6 +72,10 @@ class Socket {
         this.value = value;
     }
 
+    getValue() {
+        return this.value;
+    }
+
     static get SOCKET_INPUT() {
         return 0;
     }
@@ -76,9 +86,9 @@ class Socket {
 }
 
 class Connection {
-    constructor(socketIn, socketOut) {
-        this.socketIn = socketIn;
-        this.socketOut = socketOut;
+    constructor(socketFrom, socketTo) {
+        this.socketFrom = socketFrom;
+        this.socketTo = socketTo;
         this.id = randomstr();
     }
 
@@ -86,8 +96,8 @@ class Connection {
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.lineWidth = 5;
         ctx.beginPath();
-        ctx.moveTo(this.socketIn.posX, this.socketIn.posY);
-        ctx.lineTo(this.socketOut.posX, this.socketOut.posY);
+        ctx.moveTo(this.socketFrom.posX, this.socketFrom.posY);
+        ctx.lineTo(this.socketTo.posX, this.socketTo.posY);
         ctx.stroke();
     }
 }
@@ -114,6 +124,10 @@ class NumberControl {
     getValue() {
         return this.input.value;
     }
+
+    setValue(value) {
+        this.input.value = value;
+    }
 }
 
 class Node {
@@ -139,6 +153,8 @@ class Node {
             this.outputSockets.push(new Socket(this, i, Socket.SOCKET_OUTPUT,
                                                this.posX + this.width, this.posY + 50 + i * 50));
         }
+
+        this.updateListeners = [];
         this.id = randomstr();
     }
 
@@ -190,6 +206,8 @@ class Node {
         return undefined;
     }
 
+    setValue() {}
+
     setPosition(x, y) {
         this.posX = x;
         this.posY = y;
@@ -206,6 +224,31 @@ class Node {
             i++;
         }
     }
+
+    update() {
+    }
+
+    updated () {
+        for (const listener of this.updateListeners) {
+            listener();
+        }
+    }
+
+    addUpdateListener(listener) {
+        this.updateListeners.push(listener);
+    }
+
+    removeUpdateListener(listener) {
+        const idx = this.updateListeners.findIndex(
+            (element, index, array) => {
+                return element === listener;
+            },
+            listener
+        );
+        if (idx === -1) return;
+
+        this.updateListeners.splice(idx, 1);
+    }
 }
 
 class NumberNode extends Node {
@@ -213,6 +256,13 @@ class NumberNode extends Node {
         super(canvas, x, y, 1, 1, "Real Number");
 
         this.numberControl = new NumberControl();
+        this.numberControl.input.addEventListener('change',  (e) => {
+            // update output node
+            console.log('changed');
+            //this.numberControl.input.value = 100;
+            //console.log(this.numberControl.input.value);
+            this.update();
+        });
         this.updateControl();
     }
 
@@ -223,6 +273,11 @@ class NumberNode extends Node {
     getValue() {
         return this.numberControl.getValue();
     }
+
+    update() {
+        console.log('Number Node update');
+        this.updated();
+    }
 }
 
 class ComplexNode extends Node {
@@ -230,7 +285,15 @@ class ComplexNode extends Node {
         super(canvas, x, y, 2, 1, "Complex");
 
         this.numberControl1 = new NumberControl();
+        this.numberControl1.input.addEventListener('change', (e) => {
+            console.log('change1');
+            this.update();
+        });
         this.numberControl2 = new NumberControl();
+        this.numberControl2.input.addEventListener('change', (e) => {
+            console.log('change2');
+            this.update();
+        });
         this.updateControl();
 
     }
@@ -248,26 +311,34 @@ class ComplexNode extends Node {
     updateParent() {
         this.getValue();
     }
-}
 
-class QuaternionNode extends Node {
-     constructor(canvas, x, y) {
-         super(canvas, x, y, 4, 1, "Quaternion");
-
-        this.numberControl1 = new NumberControl();
-        this.numberControl2 = new NumberControl();
-        this.numberControl3 = new NumberControl();
-        this.numberControl4 = new NumberControl();
-        this.updateControl();
+    setValue() {
+        
     }
 
-    updateControl() {
-        this.numberControl1.setPosition(this.posX + 25, this.posY + 100, this.width - 50);
-        this.numberControl2.setPosition(this.posX + 25, this.posY + 150, this.width - 50);
-        this.numberControl3.setPosition(this.posX + 25, this.posY + 200, this.width - 50);
-        this.numberControl4.setPosition(this.posX + 25, this.posY + 250, this.width - 50);
+    update() {
+        console.log('Complex Node update');
+        this.updated();
     }
 }
+
+// class QuaternionNode extends Node {
+//      constructor(canvas, x, y) {
+//          super(canvas, x, y, 4, 1, "Quaternion");
+ //         this.numberControl1 = new NumberControl();
+//         this.numberControl2 = new NumberControl();
+//         this.numberControl3 = new NumberControl();
+//         this.numberControl4 = new NumberControl();
+//         this.updateControl();
+//     }
+
+//     updateControl() {
+//         this.numberControl1.setPosition(this.posX + 25, this.posY + 100, this.width - 50);
+//         this.numberControl2.setPosition(this.posX + 25, this.posY + 150, this.width - 50);
+//         this.numberControl3.setPosition(this.posX + 25, this.posY + 200, this.width - 50);
+//         this.numberControl4.setPosition(this.posX + 25, this.posY + 250, this.width - 50);
+//     }
+// }
 
 class ComplexAddNode extends Node {
     constructor(canvas, x, y) {
@@ -297,8 +368,8 @@ const connections = [];
 
 function updateConnection() {
     for (let connection of connections) {
-        const v = connection.socketOut.parentNode.getValue();
-        connection.socketIn.setValue(v);
+        const v = connection.socketTo.getValue();
+        connection.socketFrom.parentNode.setValue(v);
     }
 }
 
@@ -335,11 +406,12 @@ window.addEventListener('load', async () => {
 
     const n = new NumberNode(container, 0, 0);
     const c = new ComplexNode(container, 200, 0);
-    const c2= new ComplexNode(container, 300, 0);
-    const add = new ComplexAddNode(container, 400, 0);
+    //const c2= new ComplexNode(container, 300, 0);
+    //const add = new ComplexAddNode(container, 400, 0);
     //const q = new QuaternionNode(container, 150, 0);
 
-    const nodes = [n, c, c2, add];
+    //const nodes = [n, c, c2, add];
+    const nodes = [n, c];
 
     draw(nodes, ctx, 0, 0);
 
@@ -383,6 +455,22 @@ window.addEventListener('load', async () => {
                        socket.parentNode.id != mouseState.selectedSocket.parentNode.id ) {
                 console.log('connect');
                 connections.push(new Connection(socket, mouseState.selectedSocket));
+
+                if(socket.inout === Socket.SOCKET_INPUT) {
+                    // mouseState.selectedSocket -->  socket
+                    mouseState.selectedSocket.parentNode.addUpdateListener(
+                        socket.parentNode.update.bind(socket.parentNode)
+                    );
+                    mouseState.selectedSocket.parentNode.update();
+                } else {
+                    // socket.inout === Socket.SOCKET_OUTPUT
+                    // socket --> selectedSocket
+                    socket.parentNode.addUpdateListener(
+                        mouseState.selectedSocket.parentNode.update.bind(mouseState.selectedSocket.parentNode)
+                    );
+                    socket.parentNode.update();
+                }
+                
                 mouseState.state = MOUSE_STATE_NONE;
                 mouseState.selectedSocket = undefined;
                 updateConnection();
@@ -392,7 +480,6 @@ window.addEventListener('load', async () => {
                 mouseState.state = MOUSE_STATE_NONE;
             }
         }
-        
         draw(nodes, ctx, canvasX, canvasY);
     });
 
