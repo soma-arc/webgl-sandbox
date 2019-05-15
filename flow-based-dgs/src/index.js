@@ -111,7 +111,8 @@ class NumberControl {
 	    this.input.style.border = 'none';
 	    this.input.style.background = '#aaa';
 	    this.input.style.color = '#444';
-
+        this.input.disabled = undefined;
+        //this.input.disabled = 'true';
         document.body.appendChild(this.input);
     }
 
@@ -144,7 +145,7 @@ class Node {
 
         this.width = 150;
         this.height = 100 + numInputs * 50;
-        
+
         for(let i = 0; i < this.numInputs; i++) {
             this.inputSockets.push(new Socket(this, i, Socket.SOCKET_INPUT,
                                               this.posX, this.posY + 100 + i * 50));
@@ -156,6 +157,13 @@ class Node {
 
         this.updateListeners = [];
         this.id = randomstr();
+
+        this.connections = [];
+    }
+
+    addConnections(connection) {
+        
+        this.connections.push(connection);
     }
 
     draw(ctx) {
@@ -228,9 +236,9 @@ class Node {
     update() {
     }
 
-    updated () {
+    updated (data) {
         for (const listener of this.updateListeners) {
-            listener();
+            listener(data);
         }
     }
 
@@ -274,9 +282,12 @@ class NumberNode extends Node {
         return this.numberControl.getValue();
     }
 
-    update() {
+    update(data) {
+        
+        data = {"re": this.numberControl.getValue()};
         console.log('Number Node update');
-        this.updated();
+        console.log(data);
+        this.updated(data);
     }
 }
 
@@ -313,12 +324,17 @@ class ComplexNode extends Node {
     }
 
     setValue() {
-        
+
     }
 
-    update() {
+    update(data) {
+        this.numberControl1.setValue(data["re"]);
+        data = {"re": this.numberControl1.getValue(),
+                "im": this.numberControl2.getValue(),
+                "complex": this.getValue()};
         console.log('Complex Node update');
-        this.updated();
+        console.log(data);
+        this.updated(data);
     }
 }
 
@@ -351,6 +367,14 @@ class ComplexAddNode extends Node {
     getValue() {
         return this.complex1.add(this.complex2);
     }
+
+    update(data) {
+        data = {"c1": this.complex1,
+                "c2": this.complex2}
+        console.log('Complex Add Node update');
+        consoloe.log(data);
+        this.updated(data);
+    }
 }
 
 const MOUSE_STATE_NONE = 0;
@@ -358,7 +382,7 @@ const MOUSE_STATE_CLICK_SOCKET = 1;
 const MOUSE_STATE_DRAG_BODY = 2;
 const connectedNodes = [];
 
-let mouseState = {state: MOUSE_STATE_NONE,
+  let mouseState = {state: MOUSE_STATE_NONE,
                   selectedNode: undefined,
                   selectedSocket: undefined,
                   diffX: 0,
@@ -368,7 +392,7 @@ const connections = [];
 
 function updateConnection() {
     for (let connection of connections) {
-        const v = connection.socketTo.getValue();
+        const v = connection.socketTo.parentNode.getValue();
         connection.socketFrom.parentNode.setValue(v);
     }
 }
@@ -376,7 +400,7 @@ function updateConnection() {
 function draw(nodes, ctx, x, y) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, 1024, 1024);
-    
+
     if (mouseState.state === MOUSE_STATE_CLICK_SOCKET &&
         mouseState.selectedSocket != undefined) {
         ctx.fillStyle = "rgb(0, 0, 0)";
@@ -406,12 +430,12 @@ window.addEventListener('load', async () => {
 
     const n = new NumberNode(container, 0, 0);
     const c = new ComplexNode(container, 200, 0);
-    //const c2= new ComplexNode(container, 300, 0);
-    //const add = new ComplexAddNode(container, 400, 0);
+    const c2= new ComplexNode(container, 200, 250);
+    const add = new ComplexAddNode(container, 400, 0);
     //const q = new QuaternionNode(container, 150, 0);
 
     //const nodes = [n, c, c2, add];
-    const nodes = [n, c];
+    const nodes = [n, c, c2, add];
 
     draw(nodes, ctx, 0, 0);
 
@@ -422,7 +446,7 @@ window.addEventListener('load', async () => {
 
         let socket;
         let node;
-        
+
         for(const node of nodes) {
             socket = node.selectSocket(canvasX, canvasY);
             if (socket != undefined) break;
@@ -454,23 +478,24 @@ window.addEventListener('load', async () => {
             } else if (mouseState.state === MOUSE_STATE_CLICK_SOCKET &&
                        socket.parentNode.id != mouseState.selectedSocket.parentNode.id ) {
                 console.log('connect');
-                connections.push(new Connection(socket, mouseState.selectedSocket));
+                const connection = new Connection(socket, mouseState.selectedSocket)
+                connections.push(connection);
 
                 if(socket.inout === Socket.SOCKET_INPUT) {
                     // mouseState.selectedSocket -->  socket
                     mouseState.selectedSocket.parentNode.addUpdateListener(
                         socket.parentNode.update.bind(socket.parentNode)
                     );
-                    mouseState.selectedSocket.parentNode.update();
+                    mouseState.selectedSocket.parentNode.addConnections(connection);
                 } else {
                     // socket.inout === Socket.SOCKET_OUTPUT
                     // socket --> selectedSocket
                     socket.parentNode.addUpdateListener(
                         mouseState.selectedSocket.parentNode.update.bind(mouseState.selectedSocket.parentNode)
                     );
-                    socket.parentNode.update();
+                    socket.parentNode.addConnections(connection);
                 }
-                
+
                 mouseState.state = MOUSE_STATE_NONE;
                 mouseState.selectedSocket = undefined;
                 updateConnection();
