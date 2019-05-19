@@ -7,11 +7,13 @@ import CommentPlugin from 'rete-comment-plugin';
 import HistoryPlugin from 'rete-history-plugin';
 import Vue from 'vue/dist/vue.esm'
 import TaskPlugin from 'rete-task-plugin';
-
+import Complex from './complex.js';
 //------
 
-var numSocket = new Rete.Socket('Number value');
+const numSocket = new Rete.Socket('Number value');
 const msgSocket = new Rete.Socket('String message');
+const complexSocket = new Rete.Socket('Complex number');
+const shapeSocket = new Rete.Socket('Shape');
 
 var VueNumControl = Vue.component('num', {
   props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
@@ -59,7 +61,37 @@ var VueMsgControl = Vue.component('string', {
     mounted() {
         this.value = this.getData(this.ikey);
     }
-})
+});
+
+var VueComplexControl = Vue.component('string', {
+    props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
+    template: '<input type="number" :readonly="readonly" :value="real" @input="changeReal($event)"/>'+
+        '<input type="number" :readonly="readonly" :value="image" @input="changeImage($event)"/>',
+    data() {
+        return {
+            real: 0,
+            image: 0
+        }
+    },
+    methods: {
+        changeReal(e){
+            this.real = e.target.value;
+            this.update();
+        },
+        changeImage(e){
+            this.image = e.target.value;
+            this.update();
+        },
+        update() {
+            if (this.ikey)
+                this.putData(this.ikey, this.value)
+            this.emitter.trigger('process');
+        }
+    },
+    mounted() {
+        this.value = this.getData(this.ikey);
+    }
+});
 
 class NumControl extends Rete.Control {
 
@@ -117,6 +149,38 @@ class NumComponent extends Rete.Component {
 
     worker(node, inputs, outputs) {
         outputs['num'] = node.data.num;
+    }
+}
+
+class ComplexComponent extends Rete.Component {
+    constructor() {
+        super("Complex");
+    }
+
+    builder(node) {
+        const inp1 = new Rete.Input('real',"Real", numSocket);
+        const inp2 = new Rete.Input('image', "Image", numSocket);
+        const out = new Rete.Output('complex', "Complex", complexSocket);
+
+        inp1.addControl(new NumControl(this.editor, 'real'))
+        inp2.addControl(new NumControl(this.editor, 'image'))
+
+        return node
+            .addInput(inp1)
+            .addInput(inp2)
+            .addControl(new NumControl(this.editor, 'preview', true))
+            .addControl(new NumControl(this.editor, 'preview2', true))
+            .addOutput(out);
+    }
+
+    worker(node, inputs, outputs) {
+        const n1 = inputs['real'].length?inputs['real'][0]:node.data.real;
+        const n2 = inputs['image'].length?inputs['image'][0]:node.data.image;
+        const c = new Complex(n1, n2);
+        
+        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
+        this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
+        outputs['complex'] = c;
     }
 }
 
@@ -182,10 +246,128 @@ class AddStrComponent extends Rete.Component {
     }
 }
 
+class Circle {
+    constructor(x, y, r) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+    }
+}
+
+class CircleComponent extends Rete.Component {
+    constructor() {
+        super("Circle");
+    }
+
+    builder(node) {
+        const inp1 = new Rete.Input('centerX',"X", numSocket);
+        const inp2 = new Rete.Input('centerY', "Y", numSocket);
+        const inp3 = new Rete.Input('radius', "R", numSocket);
+        const out = new Rete.Output('shape', "Shape", shapeSocket);
+
+        inp1.addControl(new NumControl(this.editor, 'centerX'));
+        inp2.addControl(new NumControl(this.editor, 'centerY'));
+        inp3.addControl(new NumControl(this.editor, 'radius'));
+        return node
+            .addInput(inp1)
+            .addInput(inp2)
+            .addInput(inp3)
+            .addOutput(out);
+    }
+
+    worker(node, inputs, outputs) {
+        const n1 = inputs['centerX'].length?inputs['centerX'][0]:node.data.centerX;
+        const n2 = inputs['centerY'].length?inputs['centerY'][0]:node.data.centerY;
+        const n3 = inputs['radius'].length?inputs['radius'][0]:node.data.centerY;
+        
+        //this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
+        //this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
+        outputs['shape'] = new Circle(n1, n2, n3);
+    }
+}
+
+class HalfPlane {
+    constructor(x, y, normalX, normalY) {
+        this.x = x;
+        this.y = y;
+        this.normalX = normalX;
+        this.normalY = normalY;
+    }
+}
+
+class HalfPlaneComponent extends Rete.Component {
+    constructor() {
+        super('HalfPlane');
+    }
+
+    builder(node) {
+        const inp1 = new Rete.Input('originX', "X", numSocket);
+        const inp2 = new Rete.Input('originY', "Y", numSocket);
+        const inp3 = new Rete.Input('normalX', "NormalX", numSocket);
+        const inp4 = new Rete.Input('normalY', "NormalY", numSocket);
+        const out = new Rete.Output('shape', "Shape", shapeSocket);
+
+        inp1.addControl(new NumControl(this.editor, 'originX'));
+        inp2.addControl(new NumControl(this.editor, 'originY'));
+        inp3.addControl(new NumControl(this.editor, 'normalX'));
+        inp4.addControl(new NumControl(this.editor, 'normalY'));
+        return node
+            .addInput(inp1)
+            .addInput(inp2)
+            .addInput(inp3)
+            .addInput(inp4)
+            .addOutput(out);
+    }
+
+    worker(node, inputs, outputs) {
+        const n1 = inputs['originX'].length?inputs['originX'][0]:node.data.centerX;
+        const n2 = inputs['originY'].length?inputs['originY'][0]:node.data.centerY;
+        const n3 = inputs['normalX'].length?inputs['normalX'][0]:node.data.normalX;
+        const n4 = inputs['normalY'].length?inputs['normalY'][0]:node.data.normalY;
+        
+        //this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
+        //this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
+        outputs['shape'] = new HalfPlane(n1, n2, n3, n4);
+    }
+}
+
+class RenderComponent extends Rete.Component {
+    constructor() {
+        super('Render');
+    }
+
+    builder(node) {
+        const inp1 = new Rete.Input('shape1', "Shape1", shapeSocket);
+        const inp2 = new Rete.Input('shape2', "Shape2", shapeSocket);
+        const inp3 = new Rete.Input('shape3', "Shape3", shapeSocket);
+        const inp4 = new Rete.Input('shape4', "Shape4", shapeSocket);
+
+        return node
+            .addInput(inp1)
+            .addInput(inp2)
+            .addInput(inp3)
+            .addInput(inp4)
+    }
+
+    worker(node, inputs, outputs) {
+        const n1 = inputs['shape1'].length?inputs['shape1'][0]:node.data.shape1;
+        const n2 = inputs['shape2'].length?inputs['shape2'][0]:node.data.shape2;
+        const n3 = inputs['shape3'].length?inputs['shape3'][0]:node.data.shape3;
+        const n4 = inputs['shape4'].length?inputs['shape4'][0]:node.data.shape4;
+        
+        //this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
+        //this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
+        //outputs['shape'] = new HalfPlane(n1, n2, n3, n4);
+    }
+}
+
 window.addEventListener('load', async () => {
     var container = document.querySelector('#rete');
     var components = [new NumComponent(), new AddComponent(),
-                      new MsgComponent(), new AddStrComponent()];
+                      new MsgComponent(), new AddStrComponent(),
+                      new ComplexComponent(), new CircleComponent(),
+                      new HalfPlaneComponent(), new RenderComponent()
+                     ];
     
     var editor = new Rete.NodeEditor('demo@0.1.0', container);
     editor.use(ConnectionPlugin);
@@ -210,7 +392,7 @@ window.addEventListener('load', async () => {
     var add = await components[1].createNode();
     var msg = await components[2].createNode({msg: "hoge"});
     var addMsg = await components[3].createNode();
-    
+    const renderComponent = await components[7].createNode();
     
     n1.position = [80, 200];
     n2.position = [80, 400];
@@ -223,6 +405,7 @@ window.addEventListener('load', async () => {
     editor.addNode(add);
     editor.addNode(msg);
     editor.addNode(addMsg);
+    editor.addNode(renderComponent);
 
     editor.connect(n1.outputs.get('num'), add.inputs.get('num1'));
     editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
@@ -237,6 +420,8 @@ window.addEventListener('load', async () => {
     editor.view.resize();
     AreaPlugin.zoomAt(editor);
     editor.trigger('process');
+
+    console.log(renderComponent);
 });
 
 

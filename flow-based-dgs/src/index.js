@@ -113,6 +113,7 @@ class NumberControl {
 	    this.input.style.color = '#444';
         this.input.disabled = undefined;
         //this.input.disabled = 'true';
+        //this.input.hidden = 'true';
         document.body.appendChild(this.input);
     }
 
