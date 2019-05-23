@@ -8,6 +8,8 @@ import HistoryPlugin from 'rete-history-plugin';
 import Vue from 'vue/dist/vue.esm'
 import TaskPlugin from 'rete-task-plugin';
 import Complex from './complex.js';
+import {GetWebGL2Context} from './glUtils.js';
+import Canvas2d from './canvas2d.js';
 //------
 
 const numSocket = new Rete.Socket('Number value');
@@ -393,7 +395,7 @@ window.addEventListener('load', async () => {
     var msg = await components[2].createNode({msg: "hoge"});
     var addMsg = await components[3].createNode();
     const renderComponent = await components[7].createNode();
-    
+    console.log(n1);
     n1.position = [80, 200];
     n2.position = [80, 400];
     add.position = [500, 240];
@@ -421,7 +423,17 @@ window.addEventListener('load', async () => {
     AreaPlugin.zoomAt(editor);
     editor.trigger('process');
 
-    console.log(renderComponent);
+    const data = editor.toJSON();
+    console.log(data.nodes);
+    for(let i in data.nodes) {
+        const nodeName = data.nodes[i].name
+        if(nodeName === 'Render') {
+            console.log(data.nodes[i]);
+        }
+    }
+    
+    const canvas2d = new Canvas2d('constructionPanel');
+    canvas2d.render();
 });
 
 
