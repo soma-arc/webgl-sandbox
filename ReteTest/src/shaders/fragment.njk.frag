@@ -32,9 +32,9 @@ vec2 rand2n(const vec2 co, const float sampleIndex) {
                 fract(cos(dot(seed.xy ,vec2(4.898,7.23))) * 23421.631));
 }
 
-const float MAX_SAMPLES = 20.;
+const float MAX_SAMPLES = 1.;
 void main() {
-    vec3 sum = vec3(0, 1, 0);
+    vec3 sum = vec3(1);
     float ratio = u_resolution.x / u_resolution.y / 2.0;
     for(float i = 0.; i < MAX_SAMPLES; i++){
         vec2 position = ((gl_FragCoord.xy + rand2n(gl_FragCoord.xy, i)) / u_resolution.yy ) - vec2(ratio, 0.5);

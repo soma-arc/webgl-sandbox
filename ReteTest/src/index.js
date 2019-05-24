@@ -16,8 +16,10 @@ const numSocket = new Rete.Socket('Number value');
 const msgSocket = new Rete.Socket('String message');
 const complexSocket = new Rete.Socket('Complex number');
 const shapeSocket = new Rete.Socket('Shape');
+const reflectorsSocket = new Rete.Socket('reflections');
+const seedSocket = new Rete.Socket('seed');
 
-var VueNumControl = Vue.component('num', {
+const VueNumControl = Vue.component('num', {
   props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
   template: '<input type="number" :readonly="readonly" :value="value" @input="change($event)" @dblclick.stop="" @pointermove.stop=""/>',
   data() {
@@ -39,9 +41,9 @@ var VueNumControl = Vue.component('num', {
   mounted() {
     this.value = this.getData(this.ikey);
   }
-})
+});
 
-var VueMsgControl = Vue.component('string', {
+const VueMsgControl = Vue.component('string', {
     props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
     template: '<input type="text" :readonly="readonly"  :value="value" @input="change($event)"/>',
     data() {
@@ -65,7 +67,7 @@ var VueMsgControl = Vue.component('string', {
     }
 });
 
-var VueComplexControl = Vue.component('string', {
+const VueComplexControl = Vue.component('string', {
     props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
     template: '<input type="number" :readonly="readonly" :value="real" @input="changeReal($event)"/>'+
         '<input type="number" :readonly="readonly" :value="image" @input="changeImage($event)"/>',
@@ -363,13 +365,63 @@ class RenderComponent extends Rete.Component {
     }
 }
 
+class ReflectionRenderComponent extends Rete.Component {
+    constructor() {
+        super('ReflectionRender');
+    }
+
+    builder(node) {
+        const inp1 = new Rete.Input('reflectors', "Reflectors", reflectorsSocket);
+        const inp2 = new Rete.Input('seed', "Seed", seedSocket);
+        
+        return node
+            .addInput(inp1)
+            .addInput(inp2)
+    }
+
+    worker(node, inputs, outputs) {
+        const n1 = inputs['reflectors'].length?inputs['reflectors'][0]:node.data.reflectors;
+        const n2 = inputs['seed'].length?inputs['seed'][0]:node.data.seed;
+    }
+}
+
+class ReflectorsComponent extends Rete.Component {
+    constructor() {
+        super('Reflectors');
+    }
+
+    builder(node) {
+        const inp1 = new Rete.Input('reflector1', "Reflector1", shapeSocket);
+        const inp2 = new Rete.Input('reflector2', "Reflector2", shapeSocket);
+        const inp3 = new Rete.Input('reflector3', "Reflector3", shapeSocket);
+        const inp4 = new Rete.Input('reflector4', "Reflector4", shapeSocket);
+        const out = new Rete.Output('reflectors', "Reflectors", reflectorsSocket);
+        
+        return node
+            .addInput(inp1)
+            .addInput(inp2)
+            .addInput(inp3)
+            .addInput(inp4)
+            .addOutput(out);
+    }
+
+    worker(node, inputs, outputs) {
+        const n1 = inputs['reflector1'].length?inputs['reflector1'][0]:node.data.reflector1;
+        const n2 = inputs['reflector2'].length?inputs['reflector2'][0]:node.data.reflector2;
+        const n3 = inputs['reflector3'].length?inputs['reflector3'][0]:node.data.reflector3;
+        const n4 = inputs['reflector4'].length?inputs['reflector4'][0]:node.data.reflector4;
+        
+        outputs['reflectors'] = [n1, n2, n3, n4];
+    }
+}
+
 window.addEventListener('load', async () => {
     var container = document.querySelector('#rete');
     var components = [new NumComponent(), new AddComponent(),
                       new MsgComponent(), new AddStrComponent(),
                       new ComplexComponent(), new CircleComponent(),
-                      new HalfPlaneComponent(), new RenderComponent()
-                     ];
+                      new HalfPlaneComponent(), new RenderComponent(),
+                      new ReflectorsComponent(), new ReflectionRenderComponent()];
     
     var editor = new Rete.NodeEditor('demo@0.1.0', container);
     editor.use(ConnectionPlugin);
@@ -389,32 +441,27 @@ window.addEventListener('load', async () => {
         engine.register(c);
     });
 
-    var n1 = await components[0].createNode({num: 2});
-    var n2 = await components[0].createNode({num: 0});
-    var add = await components[1].createNode();
-    var msg = await components[2].createNode({msg: "hoge"});
-    var addMsg = await components[3].createNode();
+    const n1 = await components[0].createNode({num: 2});
+    const n2 = await components[0].createNode({num: 0});
+    const add = await components[1].createNode();
     const renderComponent = await components[7].createNode();
     console.log(n1);
     n1.position = [80, 200];
     n2.position = [80, 400];
     add.position = [500, 240];
-    msg.position = [500, 300];
  
 
     editor.addNode(n1);
     editor.addNode(n2);
     editor.addNode(add);
-    editor.addNode(msg);
-    editor.addNode(addMsg);
     editor.addNode(renderComponent);
 
     editor.connect(n1.outputs.get('num'), add.inputs.get('num1'));
     editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
 
 
-    editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
-      console.log('process');
+    editor.on('process nodecreated noderemoved connectionremoved', async () => {
+        console.log('process');
         await engine.abort();
         await engine.process(editor.toJSON());
     });
@@ -423,18 +470,28 @@ window.addEventListener('load', async () => {
     AreaPlugin.zoomAt(editor);
     editor.trigger('process');
 
-    const data = editor.toJSON();
-    console.log(data.nodes);
-    for(let i in data.nodes) {
-        const nodeName = data.nodes[i].name
-        if(nodeName === 'Render') {
-            console.log(data.nodes[i]);
+    editor.on('connectioncreated', async () => {
+        await engine.abort();
+        await engine.process(editor.toJSON());
+
+        const data = editor.toJSON();
+        console.log('log');
+        console.log(data);
+        for(let i in data.nodes) {
+            const nodeName = data.nodes[i].name
+            console.log(nodeName);
+            if(nodeName === 'Circle'|| nodeName === 'HalfPlane'){
+                //     console.log('render');
+                console.log(data.nodes[i]);
+                console.log(data.nodes[i].data);
+                console.log(data.nodes[i].outputs.shape.connections)
+            } else if(nodeName === 'Render' || nodeName === 'ReflectionRender') {
+                console.log('Render log');
+                console.log(data.nodes[i]);
+            }
         }
-    }
+    });
     
     const canvas2d = new Canvas2d('constructionPanel');
     canvas2d.render();
 });
-
-
-
