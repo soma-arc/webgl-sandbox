@@ -460,7 +460,7 @@ window.addEventListener('load', async () => {
     editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
 
 
-    editor.on('nodecreated noderemoved connectionremoved', async () => {
+    editor.on('nodecreated', async () => {
         console.log('process');
         await engine.abort();
         await engine.process(editor.toJSON());
@@ -474,7 +474,7 @@ window.addEventListener('load', async () => {
     const fragmentShaderData = {numCircles: 0,
                                 numHalfPlanes: 0};
     
-    editor.on('process connectioncreated', async () => {
+    editor.on('process connectioncreated noderemoved connectionremoved', async () => {
         await engine.abort();
         await engine.process(editor.toJSON());
 
@@ -491,6 +491,7 @@ window.addEventListener('load', async () => {
                 console.log(data.nodes[i]);
                 console.log(data.nodes[i].data);
                 console.log(data.nodes[i].outputs.shape.connections)
+                if(data.nodes[i].outputs.shape.connections.length === 0) continue;
                 fragmentShaderData['circle'+ fragmentShaderData['numCircles']] = data.nodes[i].data
                 fragmentShaderData['numCircles']++;
             } else if (nodeName === 'HalfPlane') {
