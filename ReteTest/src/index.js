@@ -460,7 +460,7 @@ window.addEventListener('load', async () => {
     editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
 
 
-    editor.on('process nodecreated noderemoved connectionremoved', async () => {
+    editor.on('nodecreated noderemoved connectionremoved', async () => {
         console.log('process');
         await engine.abort();
         await engine.process(editor.toJSON());
@@ -470,28 +470,44 @@ window.addEventListener('load', async () => {
     AreaPlugin.zoomAt(editor);
     editor.trigger('process');
 
-    editor.on('connectioncreated', async () => {
+    const canvas2d = new Canvas2d('constructionPanel');
+    const fragmentShaderData = {numCircles: 0,
+                                numHalfPlanes: 0};
+    
+    editor.on('process connectioncreated', async () => {
         await engine.abort();
         await engine.process(editor.toJSON());
 
         const data = editor.toJSON();
         console.log('log');
         console.log(data);
+        fragmentShaderData['numCircles'] = 0;
+        fragmentShaderData['numHalfPlanes'] = 0;
         for(let i in data.nodes) {
             const nodeName = data.nodes[i].name
             console.log(nodeName);
-            if(nodeName === 'Circle'|| nodeName === 'HalfPlane'){
-                //     console.log('render');
+            if(nodeName === 'Circle'){
+                console.log('circle');
                 console.log(data.nodes[i]);
                 console.log(data.nodes[i].data);
                 console.log(data.nodes[i].outputs.shape.connections)
+                fragmentShaderData['circle'+ fragmentShaderData['numCircles']] = data.nodes[i].data
+                fragmentShaderData['numCircles']++;
+            } else if (nodeName === 'HalfPlane') {
+                console.log('HalfPlane');
+                console.log(data.nodes[i]);
+                console.log(data.nodes[i].data);
+                console.log(data.nodes[i].outputs.shape.connections)
+                fragmentShaderData['halfPlane'+ fragmentShaderData['numHalfPlanes']] = data.nodes[i].data
+                fragmentShaderData['numHalfPlanes']++;
             } else if(nodeName === 'Render' || nodeName === 'ReflectionRender') {
                 console.log('Render log');
                 console.log(data.nodes[i]);
             }
         }
+        canvas2d.compileRenderShader(fragmentShaderData);
+        canvas2d.render();
     });
     
-    const canvas2d = new Canvas2d('constructionPanel');
     canvas2d.render();
 });

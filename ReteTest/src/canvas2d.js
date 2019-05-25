@@ -34,7 +34,7 @@ export default class Canvas2d extends Canvas {
                                                               'a_vertex');
 
         // render to texture
-        this.compileRenderShader();
+        this.compileRenderShader({numCircles: 0, numHalfPlanes: 0});
         this.initRenderTextures();
         this.texturesFrameBuffer = this.gl.createFramebuffer();
 
@@ -43,7 +43,7 @@ export default class Canvas2d extends Canvas {
         this.initProductRenderTextures();
 
         // geometry
-        this.scale = 1;
+        this.scale = 5;
         this.scaleFactor = 1.25;
         this.translate = new Vec2(0, 0);
 
@@ -152,14 +152,14 @@ export default class Canvas2d extends Canvas {
     keyupListener(event) {
     }
 
-    compileRenderShader() {
+    compileRenderShader(fragmentShaderData) {
         this.renderProgram = this.gl.createProgram();
         AttachShader(this.gl, RENDER_VERTEX, this.renderProgram, this.gl.VERTEX_SHADER);
-        AttachShader(this.gl, FRAGMENT_SHADER_TMPL.render({}),
+        AttachShader(this.gl, FRAGMENT_SHADER_TMPL.render(fragmentShaderData),
                      this.renderProgram, this.gl.FRAGMENT_SHADER);
         LinkProgram(this.gl, this.renderProgram);
         this.renderVAttrib = this.gl.getAttribLocation(this.renderProgram, 'a_vertex');
-        this.getRenderUniformLocations();
+        this.getRenderUniformLocations(fragmentShaderData);
     }
 
     initRenderTextures() {
@@ -176,7 +176,7 @@ export default class Canvas2d extends Canvas {
                                                             this.productRenderResolution.y, 1)[0];
     }
 
-    getRenderUniformLocations() {
+    getRenderUniformLocations(fragmentShaderData) {
         this.uniLocations = [];
         const textureIndex = 0;
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
@@ -187,8 +187,17 @@ export default class Canvas2d extends Canvas {
                                                           'u_geometry'));
         this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
                                                           'u_maxIISIterations'));
-        this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
-                                                          'u_isRenderingGenerator'));
+        for (let index = 0; index < fragmentShaderData.numCircles; index++) {
+            this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram, `u_circle${index}.centerAndRadius`));
+            this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram, `u_circle${index}.ui`));
+        }
+        for (let index = 0; index < fragmentShaderData.numHalfPlanes; index++) {
+            this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                   `u_halfPlane${index}.p`));
+            this.uniLocations.push(this.gl.getUniformLocation(this.renderProgram,
+                                                   `u_halfPlane${index}.normal`));
+        }
+        this.shapeData = fragmentShaderData;
         //this.scene.setUniformLocation(this.gl, this.uniLocations, this.renderProgram);
     }
 
@@ -202,8 +211,22 @@ export default class Canvas2d extends Canvas {
         this.gl.uniform3f(this.uniLocations[i++],
                           this.translate.x, this.translate.y, this.scale);
         this.gl.uniform1i(this.uniLocations[i++], this.maxIterations);
-        this.gl.uniform1i(this.uniLocations[i++], this.isRenderingGenerator);
-        //i = this.scene.setUniformValues(this.gl, this.uniLocations, i, this.scale);
+
+        for (let index = 0; index < this.shapeData.numCircles; index++) {
+            const data = this.shapeData['circle'+ index];
+            this.gl.uniform4f(this.uniLocations[i++],
+                              data.centerX, data.centerY,
+                              data.radius, data.radius * data.radius);
+            this.gl.uniform1f(this.uniLocations[i++], 10);
+        }
+
+        for (let index = 0; index < this.shapeData.numHalfPlanes; index++) {
+            const data = this.shapeData['halfPlane'+ index];
+            this.gl.uniform2f(this.uniLocations[i++],
+                         data.originX, data.originY);
+            this.gl.uniform2f(this.uniLocations[i++],
+                         data.normalX, data.normalY);
+        }
     }
 
     renderToTexture(textures, width, height) {
