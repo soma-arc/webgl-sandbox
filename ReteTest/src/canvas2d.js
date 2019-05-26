@@ -65,6 +65,7 @@ export default class Canvas2d extends Canvas {
 
     resize() {
         this.resizeCanvas();
+        this.initRenderTextures();
         this.render();
     }
 
@@ -142,15 +143,17 @@ export default class Canvas2d extends Canvas {
     mouseMoveListener(event) {
         // envent.button return 0 when the mouse is not pressed.
         // Thus we check if the mouse is pressed.
-        // if (!this.mouseState.isPressing) return;
-        // const mouse = this.calcSceneCoord(event.clientX, event.clientY);
+        if (!this.mouseState.isPressing) return;
+        const mouse = this.calcSceneCoord(event.clientX, event.clientY);
         // if (this.mouseState.button === Canvas.MOUSE_BUTTON_LEFT) {
         //     const moved = this.scene.move(mouse);
         //     if (moved) this.isRendering = true;
-        // } else if (this.mouseState.button === Canvas.MOUSE_BUTTON_RIGHT) {
-        //     this.translate = this.translate.sub(mouse.sub(this.mouseState.prevPosition));
-        //     this.isRendering = true;
-        // }
+        // } else
+        if (this.mouseState.button === Canvas.MOUSE_BUTTON_RIGHT) {
+            this.translate = this.translate.sub(mouse.sub(this.mouseState.prevPosition));
+            //this.isRendering = true;
+            this.render();
+        }
     }
 
     keydownListener(event) {
@@ -171,7 +174,7 @@ export default class Canvas2d extends Canvas {
 
     initRenderTextures() {
         this.renderTextures = CreateRGBATextures(this.gl, this.canvas.width,
-                                                this.canvas.height, 2);
+                                                 this.canvas.height, 2);
     }
 
     initProductRenderTextures() {
