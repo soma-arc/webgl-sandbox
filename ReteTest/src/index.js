@@ -441,23 +441,8 @@ window.addEventListener('load', async () => {
         engine.register(c);
     });
 
-    const n1 = await components[0].createNode({num: 2});
-    const n2 = await components[0].createNode({num: 0});
-    const add = await components[1].createNode();
     const renderComponent = await components[7].createNode();
-    console.log(n1);
-    n1.position = [80, 200];
-    n2.position = [80, 400];
-    add.position = [500, 240];
-
-
-    editor.addNode(n1);
-    editor.addNode(n2);
-    editor.addNode(add);
     editor.addNode(renderComponent);
-
-    editor.connect(n1.outputs.get('num'), add.inputs.get('num1'));
-    editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
 
 
     editor.on('nodecreated', async () => {
@@ -471,6 +456,11 @@ window.addEventListener('load', async () => {
     editor.trigger('process');
 
     const canvas2d = new Canvas2d('constructionPanel');
+    let resizeTimer = setTimeout(canvas2d.resizeCallback, 500);
+    window.addEventListener('resize', () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(canvas2d.resizeCallback, 500);
+    });
     const fragmentShaderData = {numCircles: 0,
                                 numHalfPlanes: 0};
 
@@ -491,7 +481,14 @@ window.addEventListener('load', async () => {
                 console.log(data.nodes[i]);
                 console.log(data.nodes[i].data);
                 console.log(data.nodes[i].outputs.shape.connections)
+
                 if(data.nodes[i].outputs.shape.connections.length === 0) continue;
+                // let include;
+                // for(const con of data.nodes[i].outputs.shape.connections) {
+                //     include = con.input.includes("reflector");
+                // }
+                // if(include) continue;
+                
                 fragmentShaderData['circle'+ fragmentShaderData['numCircles']] = data.nodes[i].data
                 fragmentShaderData['numCircles']++;
             } else if (nodeName === 'HalfPlane') {
@@ -499,6 +496,7 @@ window.addEventListener('load', async () => {
                 console.log(data.nodes[i]);
                 console.log(data.nodes[i].data);
                 console.log(data.nodes[i].outputs.shape.connections)
+                if(data.nodes[i].outputs.shape.connections.length === 0) continue;
                 fragmentShaderData['halfPlane'+ fragmentShaderData['numHalfPlanes']] = data.nodes[i].data
                 fragmentShaderData['numHalfPlanes']++;
             } else if(nodeName === 'Render') {
@@ -509,6 +507,7 @@ window.addEventListener('load', async () => {
             } else if (nodeName === 'ReflectionRender') {
                 //console.log('ReflectionRender');
                 fragmentShaderData['renderGenerator'] = false;
+            } else if (nodeName === 'Reflectors') {
             }
         }
         console.log(fragmentShaderData);

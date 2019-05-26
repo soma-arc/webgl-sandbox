@@ -43,15 +43,14 @@
              display: flex;
              flex: 1;
          }
-         #constructionPanel {
+         #canvasParent {
              display: flex;
-             /* flex: 1; */
              border-style: ridge;
              border-color: gray;
 
              flex-direction: column;
              width:500px;
-             overflow: auto;
+             overflow: hidden;
          }
         </style>
         <script type="text/javascript" src="./bundle.js"></script>
@@ -59,7 +58,7 @@
     <body>
         <div id="root">
             <div id="rete" class="node-editor"></div>
-            <canvas id="constructionPanel"></canvas>
+            <div id="canvasParent"><canvas id="constructionPanel"></canvas></div>
         </div>
     </body>
 </html>

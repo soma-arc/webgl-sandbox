@@ -3,7 +3,8 @@ export default class Camvas {
         this.canvasId = canvasId;
         this.canvas = document.getElementById(canvasId);
         this.pixelRatio = 1.0;//window.devicePixelRatio;
-
+        this.resizeCanvas();
+        
         this.isRendering = false;
 
         this.boundMouseDownListener = this.mouseDownListener.bind(this);
@@ -25,6 +26,15 @@ export default class Camvas {
         this.canvas.addEventListener('contextmenu', event => event.preventDefault());
 
         this.renderCallback = this.render.bind(this);
+    }
+
+    resizeCanvas() {
+        const parent = this.canvas.parentElement;
+        this.canvas.style.width = parent.clientWidth + 'px';
+        this.canvas.style.height = parent.clientHeight + 'px';
+        this.canvas.width = parent.clientWidth * this.pixelRatio;
+        this.canvas.height = parent.clientHeight * this.pixelRatio;
+        this.canvasRatio = this.canvas.width / this.canvas.height / 2;
     }
 
     mouseWheelListener(event) {}

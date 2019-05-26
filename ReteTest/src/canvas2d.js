@@ -59,6 +59,13 @@ export default class Canvas2d extends Canvas {
             button: -1
         };
 
+        this.shapeData = {};
+        this.resizeCallback = this.resize.bind(this);
+    }
+
+    resize() {
+        this.resizeCanvas();
+        this.render();
     }
 
     /**
