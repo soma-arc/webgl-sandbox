@@ -230,9 +230,10 @@ export default class Canvas2d extends Canvas {
         for (let index = 0; index < this.shapeData.numHalfPlanes; index++) {
             const data = this.shapeData['halfPlane'+ index];
             this.gl.uniform2f(this.uniLocations[i++],
-                         data.originX, data.originY);
+                              data.originX, data.originY);
+            const sum = Math.sqrt(data.normalX * data.normalX + data.normalY * data.normalY);
             this.gl.uniform2f(this.uniLocations[i++],
-                         data.normalX, data.normalY);
+                         data.normalX/sum, data.normalY/sum);
         }
     }
 
