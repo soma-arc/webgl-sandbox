@@ -181,7 +181,7 @@ class ComplexComponent extends Rete.Component {
         const n1 = inputs['real'].length?inputs['real'][0]:node.data.real;
         const n2 = inputs['image'].length?inputs['image'][0]:node.data.image;
         const c = new Complex(n1, n2);
-        
+
         this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
         this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
         outputs['complex'] = c;
@@ -212,7 +212,7 @@ class AddComponent extends Rete.Component {
         var n1 = inputs['num1'].length?inputs['num1'][0]:node.data.num1;
         var n2 = inputs['num2'].length?inputs['num2'][0]:node.data.num2;
         var sum = n1 + n2;
-        
+
         this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
         outputs['num'] = sum;
     }
@@ -244,7 +244,7 @@ class AddStrComponent extends Rete.Component {
         if(n2 === undefined) n2 = "";
         if(n1 === undefined) n1 = "";
         var sum = n1 + n2;
-        
+
         this.editor.nodes.find(n => n.id == node.id).controls.get('previewStr').setValue(sum);
         outputs['msg'] = sum;
     }
@@ -283,7 +283,7 @@ class CircleComponent extends Rete.Component {
         const n1 = inputs['centerX'].length?inputs['centerX'][0]:node.data.centerX;
         const n2 = inputs['centerY'].length?inputs['centerY'][0]:node.data.centerY;
         const n3 = inputs['radius'].length?inputs['radius'][0]:node.data.centerY;
-        
+
         //this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
         //this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
         outputs['shape'] = new Circle(n1, n2, n3);
@@ -328,7 +328,7 @@ class HalfPlaneComponent extends Rete.Component {
         const n2 = inputs['originY'].length?inputs['originY'][0]:node.data.centerY;
         const n3 = inputs['normalX'].length?inputs['normalX'][0]:node.data.normalX;
         const n4 = inputs['normalY'].length?inputs['normalY'][0]:node.data.normalY;
-        
+
         //this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
         //this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
         outputs['shape'] = new HalfPlane(n1, n2, n3, n4);
@@ -358,7 +358,7 @@ class RenderComponent extends Rete.Component {
         const n2 = inputs['shape2'].length?inputs['shape2'][0]:node.data.shape2;
         const n3 = inputs['shape3'].length?inputs['shape3'][0]:node.data.shape3;
         const n4 = inputs['shape4'].length?inputs['shape4'][0]:node.data.shape4;
-        
+
         //this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(n1);
         //this.editor.nodes.find(n => n.id == node.id).controls.get('preview2').setValue(n2);
         //outputs['shape'] = new HalfPlane(n1, n2, n3, n4);
@@ -373,7 +373,7 @@ class ReflectionRenderComponent extends Rete.Component {
     builder(node) {
         const inp1 = new Rete.Input('reflectors', "Reflectors", reflectorsSocket);
         const inp2 = new Rete.Input('seed', "Seed", seedSocket);
-        
+
         return node
             .addInput(inp1)
             .addInput(inp2)
@@ -396,7 +396,7 @@ class ReflectorsComponent extends Rete.Component {
         const inp3 = new Rete.Input('reflector3', "Reflector3", shapeSocket);
         const inp4 = new Rete.Input('reflector4', "Reflector4", shapeSocket);
         const out = new Rete.Output('reflectors', "Reflectors", reflectorsSocket);
-        
+
         return node
             .addInput(inp1)
             .addInput(inp2)
@@ -410,7 +410,7 @@ class ReflectorsComponent extends Rete.Component {
         const n2 = inputs['reflector2'].length?inputs['reflector2'][0]:node.data.reflector2;
         const n3 = inputs['reflector3'].length?inputs['reflector3'][0]:node.data.reflector3;
         const n4 = inputs['reflector4'].length?inputs['reflector4'][0]:node.data.reflector4;
-        
+
         outputs['reflectors'] = [n1, n2, n3, n4];
     }
 }
@@ -422,10 +422,10 @@ window.addEventListener('load', async () => {
                       new ComplexComponent(), new CircleComponent(),
                       new HalfPlaneComponent(), new RenderComponent(),
                       new ReflectorsComponent(), new ReflectionRenderComponent()];
-    
+
     var editor = new Rete.NodeEditor('demo@0.1.0', container);
     editor.use(ConnectionPlugin);
-    editor.use(VueRenderPlugin);    
+    editor.use(VueRenderPlugin);
     let readyMenu = [10, 12, 14];
     let dontHide = ['click'];
     editor.use(ContextMenuPlugin);
@@ -435,7 +435,7 @@ window.addEventListener('load', async () => {
 //    editor.use(ConnectionMasteryPlugin);
 
     var engine = new Rete.Engine('demo@0.1.0');
-    
+
     components.map(c => {
         editor.register(c);
         engine.register(c);
@@ -449,7 +449,7 @@ window.addEventListener('load', async () => {
     n1.position = [80, 200];
     n2.position = [80, 400];
     add.position = [500, 240];
- 
+
 
     editor.addNode(n1);
     editor.addNode(n2);
@@ -473,7 +473,7 @@ window.addEventListener('load', async () => {
     const canvas2d = new Canvas2d('constructionPanel');
     const fragmentShaderData = {numCircles: 0,
                                 numHalfPlanes: 0};
-    
+
     editor.on('process connectioncreated noderemoved connectionremoved', async () => {
         await engine.abort();
         await engine.process(editor.toJSON());
@@ -487,7 +487,7 @@ window.addEventListener('load', async () => {
             const nodeName = data.nodes[i].name
             console.log(nodeName);
             if(nodeName === 'Circle'){
-                console.log('circle');
+                ///console.log('circle');
                 console.log(data.nodes[i]);
                 console.log(data.nodes[i].data);
                 console.log(data.nodes[i].outputs.shape.connections)
@@ -495,20 +495,26 @@ window.addEventListener('load', async () => {
                 fragmentShaderData['circle'+ fragmentShaderData['numCircles']] = data.nodes[i].data
                 fragmentShaderData['numCircles']++;
             } else if (nodeName === 'HalfPlane') {
-                console.log('HalfPlane');
+                //console.log('HalfPlane');
                 console.log(data.nodes[i]);
                 console.log(data.nodes[i].data);
                 console.log(data.nodes[i].outputs.shape.connections)
                 fragmentShaderData['halfPlane'+ fragmentShaderData['numHalfPlanes']] = data.nodes[i].data
                 fragmentShaderData['numHalfPlanes']++;
-            } else if(nodeName === 'Render' || nodeName === 'ReflectionRender') {
-                console.log('Render log');
-                console.log(data.nodes[i]);
+            } else if(nodeName === 'Render') {
+                //console.log('Render Node');
+                //console.log(data.nodes[i]);
+                fragmentShaderData['renderGenerator'] = true;
+                console.log(fragmentShaderData);
+            } else if (nodeName === 'ReflectionRender') {
+                //console.log('ReflectionRender');
+                fragmentShaderData['renderGenerator'] = false;
             }
         }
+        console.log(fragmentShaderData);
         canvas2d.compileRenderShader(fragmentShaderData);
         canvas2d.render();
     });
-    
+
     canvas2d.render();
 });

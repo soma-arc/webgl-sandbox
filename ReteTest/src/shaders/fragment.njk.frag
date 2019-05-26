@@ -121,8 +121,11 @@ void IIS(vec2 pos, out vec3 col) {
 
         if (inFund) break;
     }
-    col = computeColor(invNum);
-    
+    if(invNum > 0.) {
+        col = computeColor(invNum);
+    } else {
+        col = vec3(0);
+    }
 }
 
 
@@ -136,7 +139,11 @@ void main() {
         position += u_geometry.xy;
 
         vec3 col;
+        {% if renderGenerator %}
         renderGenerator(position, col);
+        {% else %}
+        IIS(position, col);
+        {% endif %}
         sum = sum + col;
     }
     vec3 texCol = textureLod(u_accTexture, gl_FragCoord.xy / u_resolution, 0.0).rgb;
