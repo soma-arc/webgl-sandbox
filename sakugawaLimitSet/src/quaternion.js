@@ -57,10 +57,56 @@ export default class Quaternion {
 		return new Quaternion(this.re * k, this.i * k, this.j * k, this.k * k);
     }
 
+    static log(q) {
+        const logRe = Math.log(q.norm());
+        const logImag = q.imag().scale(1.0 / q.imag().norm()).mult(Math.atan(q.imag().norm() / q.re));
+        return new Quaternion(logRe, logImag.i, logImag.j, logImag.k);
+    }
+
+    static exp(q) {
+        const realValue = Math.exp(q.re) * Math.cos(q.imag().norm());
+        const im = q.imag().scale(1.0 / q.imag().norm()).scale(Math.sin(q.imag().norm())).scale(Math.exp(q.re));
+        return new Quaternion(realValue, im.i, im.j, im.k);
+    }
+
+    static pow(q, exponent) {
+        return Quaternion.exp(Quaternion.log(q).mult(exponent));
+    }
+    
+    sqrt() {
+        if(this.isComplex()) {
+            return this.complexSqrt();
+        }
+        return Quaternion.pow(this, 0.5);
+    }
+
+    complexSqrt() {
+        if (this.i > 0) {
+            const n = Math.sqrt(this.re * this.re + this.i * this.i);
+            return new Quaternion(Math.sqrt(this.re + n) / Math.sqrt(2),
+                                  Math.sqrt(-this.re + n) / Math.sqrt(2),
+                                  0,0);
+        } else if (this.i < 0) {
+            const n = Math.sqrt(this.re * this.re + this.i * this.i);
+            return new Quaternion(Math.sqrt(this.re + n) / Math.sqrt(2),
+                                  -Math.sqrt(-this.re + n) / Math.sqrt(2),
+                                  0,0);
+        }
+
+        if(this.re < 0) {
+            return new Quaternion(0, Math.sqrt(Math.abs(this.re)), 0, 0);
+        }
+        return new Quaternion(Math.sqrt(this.re), 0, 0, 0);
+    }
+
     div(k) {
         if (k === Number.POSITIVE_INFINITY || (k === 0 && this.isZero())) return Quaternion.ZERO;
         else if (k === 0) return Quaternion.INFINITY;
         return new Quaternion(this.re / k, this.i / k, this.j / k, this.k / k);
+    }
+
+    imag() {
+        return new Quaternion(0, this.i, this.j, this.k);
     }
 
     isZero() {
@@ -75,6 +121,14 @@ export default class Quaternion {
             this.i === Number.POSITIVE_INFINITY ||
             this.j === Number.POSITIVE_INFINITY ||
             this.k === Number.POSITIVE_INFINITY;
+    }
+
+    isReal() {
+        return (this.i === 0 && this.j === 0 && this.k === 0);
+    }
+
+    isComplex() {
+        return (this.j === 0 && this.k === 0);
     }
 
     cliffordTransposition() {
@@ -92,6 +146,11 @@ export default class Quaternion {
     norm() {
         if(this.isInfinity()) return Number.POSITIVE_INFINITY;
         return Math.sqrt(this.re * this.re + this.i * this.i + this.j * this.j + this.k * this.k);
+    }
+
+    sqNorm() {
+        if(this.isInfinity()) return Number.POSITIVE_INFINITY;
+        return this.re * this.re + this.i * this.i + this.j * this.j + this.k * this.k;
     }
 
     inverse() {
@@ -113,6 +172,13 @@ export default class Quaternion {
                               this.j*q.k - this.k*q.j,
                               this.k*q.i - this.i*q.k,
                               this.i*q.j - this.j*q.i);
+    }
+
+    equals(q) {
+        return this.re === q.re &&
+            this.i === q.i &&
+            this.j === q.j &&
+            this.k === q.k;
     }
 
     static get ZERO() {
