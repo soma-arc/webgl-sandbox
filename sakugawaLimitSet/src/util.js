@@ -36,7 +36,7 @@ export function ComputeDelta(m) {
  *
  * @param {SPK1_1} m
  */
-export function computeFixedPoint(m) {
+export function ComputeFixedPoint(m) {
     const sigma = m.c.mult(m.c.cliffordTransposition().inverse());
     const tau = sigma.mult(m.a.cliffordTransposition()).add(m.d);
     const delta = ComputeDelta(m);
@@ -73,4 +73,22 @@ export function computeFixedPoint(m) {
     }
 
     return m.c.inverse().mult(t.sub(m.d));
+}
+
+/**
+ *
+ * @param {Quaternion} q1
+ * @param {Quaternion} q2
+ */
+export function DistQuaternion3D(q1, q2) {
+    const diff = q2.sub(q1);
+    const total = diff.re * diff.re + diff.i * diff.i + diff.j * diff.j;
+    return Math.sqrt(total);
+}
+
+export function ComputeMatrix(m1, m2, m3, m4) {
+    const m1m2 = m1.mult(m2);
+    const m1m2m3  = m1m2.mult(m3);
+    const m1m2m3m4 = m1m2m3.mult(m4);
+    return m1m2m3m4;
 }
