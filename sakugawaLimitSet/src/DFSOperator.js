@@ -78,9 +78,9 @@ export default class DFSOperator {
 
     goForward(){
 		this.level++;
-		this.tags[level] = Math.abs((this.tags[level - 1] + 1)%4);
-		if(this.tags[level] == 0)
-			this.tags[level] = 4;
+		this.tags[this.level] = Math.abs((this.tags[this.level - 1] + 1)%4);
+		if(this.tags[this.level] == 0)
+			this.tags[this.level] = 4;
 		//dumpWord();
 		//System.out.println("go forward current level "+ level +"tag["+ level +"]"+ tags[level]);
 		this.word[this.level] = this.word[this.level -1].mult(this.gens[this.tags[this.level]]);
@@ -92,7 +92,7 @@ export default class DFSOperator {
 	}
 
 	isAvailableTurn(){
-		let t = Math.abs((this.tags[level] + 2)%4);
+		let t = Math.abs((this.tags[this.level] + 2)%4);
 		if(t == 0)
 			t = 4;
 		let t2 = this.tags[this.level + 1] -1;
@@ -105,14 +105,14 @@ export default class DFSOperator {
 	}
 
 	turnAndGoForward(){
-		this.tags[level + 1] = Math.abs((this.tags[this.level + 1]) - 1 % 4);
+		this.tags[this.level + 1] = Math.abs((this.tags[this.level + 1]) - 1 % 4);
 		if(this.tags[this.level +1] == 0)
 			this.tags[this.level + 1] = 4;
 		//dumpWord();
 		if(this.level == 0)
 			this.word[1] = this.gens[this.tags[1]];
 		else
-			this.word[this.level + 1] = this.word[level].mult(this.gens[this.tags[this.level + 1]]);
+			this.word[this.level + 1] = this.word[this.level].mult(this.gens[this.tags[this.level + 1]]);
 		this.level++;
 		//System.out.println("turn and go forward current level"+ level);
 	}
