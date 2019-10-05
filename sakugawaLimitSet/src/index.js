@@ -10,6 +10,7 @@ import DfsOperator from './2d/dfsOperator.js';
 
 import Quaternion from './quaternion.js';
 import SPK1_1 from './spk1_1.js';
+import SakugawaRecipe from './sakugawaRecipe.js';
 
 const RENDER_FRAG = require('./shaders/render.frag');
 const RENDER_VERT = require('./shaders/render.vert');
@@ -28,7 +29,7 @@ window.addEventListener('load', () => {
     console.log(`abs(a): ${a.abs().toString()}`);
     console.log(`abs(b): ${b.abs().toString()}`);
     console.log();
-    
+
     const am = new SPK1_1(a, b, b, a);
     const bm = new SPK1_1(b, a, b, b);
     console.log("am:\n"+ am.toString());
@@ -39,7 +40,24 @@ window.addEventListener('load', () => {
     console.log("trace(bm)\n"+ bm.trace().toString());
     console.log("inverse(am)\n"+ am.inverse().toString());
     console.log("inverse(bm)\n"+ bm.inverse().toString());
-    
+    console.log();
+
+    const z0_1 = new Quaternion(-1, 0 ,0 ,0);
+    const thetaA_1 = 0;
+    const thetaB_1 = Math.PI / 2;
+    const recipe1 = new SakugawaRecipe(z0_1, thetaA_1, thetaB_1);
+    console.log("recipe1 a\n"+recipe1.a.toString());
+    console.log("recipe1 b\n"+recipe1.b.toString());
+    console.log();
+
+    const z0_2 = new Quaternion(-2, 0 ,0 ,0);
+    const thetaA_2 = Math.PI / 2;
+    const thetaB_2 = 0;
+    const recipe2 = new SakugawaRecipe(z0_2, thetaA_2, thetaB_2);
+    console.log("recipe2 a\n"+recipe2.a.toString());
+    console.log("recipe2 b\n"+recipe2.b.toString());
+    console.log();
+
     const recipe = new GrandmaRecipe(new Complex(2, 0.0),
                                      new Complex(2, 0.0),
                                      false);
