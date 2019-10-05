@@ -44,7 +44,7 @@ export default class Quaternion {
      */
     mult(q) {
         if (this.isZero() || q.isZero()) return Quaternion.ZERO;
-        if(this.isInfinity() || q.isInfinity) return Quaternion.INFINITY;
+        if(this.isInfinity() || q.isInfinity()) return Quaternion.INFINITY;
 
         return new Quaternion(this.re * q.re - this.i * q.i  - this.j * q.j  - this.k * q.k, 
                               this.re * q.i  + this.i * q.re + this.j * q.k  - this.k * q.j, 
@@ -59,7 +59,7 @@ export default class Quaternion {
 
     static log(q) {
         const logRe = Math.log(q.norm());
-        const logImag = q.imag().scale(1.0 / q.imag().norm()).mult(Math.atan(q.imag().norm() / q.re));
+        const logImag = q.imag().scale(1.0 / q.imag().norm()).scale(Math.atan(q.imag().norm() / q.re));
         return new Quaternion(logRe, logImag.i, logImag.j, logImag.k);
     }
 
@@ -70,7 +70,7 @@ export default class Quaternion {
     }
 
     static pow(q, exponent) {
-        return Quaternion.exp(Quaternion.log(q).mult(exponent));
+        return Quaternion.exp(Quaternion.log(q).scale(exponent));
     }
     
     sqrt() {
@@ -199,4 +199,14 @@ export default class Quaternion {
                               Number.POSITIVE_INFINITY,
                               Number.POSITIVE_INFINITY);
     }
+
+    toString(){
+		let iSign = " + ";
+		let jSign = " + ";
+		let kSign = " + ";
+		if(this.i < 0) iSign = " - ";
+		if(this.j < 0) jSign = " - ";
+		if(this.k < 0) kSign = " - ";
+		return this.re + iSign + Math.abs(this.i) +"i" + jSign + Math.abs(this.j) + "j"+ kSign + Math.abs(this.k) +"k";
+	}
 }

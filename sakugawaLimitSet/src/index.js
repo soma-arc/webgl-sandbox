@@ -8,10 +8,38 @@ import Complex from './2d/complex.js';
 import GrandmaRecipe from './2d/grandmaRecipe.js';
 import DfsOperator from './2d/dfsOperator.js';
 
+import Quaternion from './quaternion.js';
+import SPK1_1 from './spk1_1.js';
+
 const RENDER_FRAG = require('./shaders/render.frag');
 const RENDER_VERT = require('./shaders/render.vert');
 
 window.addEventListener('load', () => {
+    const a = new Quaternion(1, 2, 3, 4);
+    const b = new Quaternion(5, 6, 7, 8);
+    console.log(`a: ${a.toString()}`);
+    console.log(`b: ${b.toString()}`);
+    console.log(`a + b: ${a.add(b).toString()}`);
+    console.log(`a - b: ${a.sub(b).toString()}`);
+    console.log(`a * b: ${a.mult(b).toString()}`);
+    console.log(`a / 2: ${a.scale(0.5).toString()}`);
+    console.log(`sqrt(a): ${a.sqrt().toString()}`);
+    console.log(`sqrt(b): ${b.sqrt().toString()}`);
+    console.log(`abs(a): ${a.abs().toString()}`);
+    console.log(`abs(b): ${b.abs().toString()}`);
+    console.log();
+    
+    const am = new SPK1_1(a, b, b, a);
+    const bm = new SPK1_1(b, a, b, b);
+    console.log("am:\n"+ am.toString());
+    console.log("bm:\n"+ bm.toString());
+    console.log("am * bm:\n"+ (am.mult(bm)).toString());
+    console.log("bm * am:\n"+ (bm.mult(am)).toString());
+    console.log("trace(am)\n"+ am.trace().toString());
+    console.log("trace(bm)\n"+ bm.trace().toString());
+    console.log("inverse(am)\n"+ am.inverse().toString());
+    console.log("inverse(bm)\n"+ bm.inverse().toString());
+    
     const recipe = new GrandmaRecipe(new Complex(2, 0.0),
                                      new Complex(2, 0.0),
                                      false);

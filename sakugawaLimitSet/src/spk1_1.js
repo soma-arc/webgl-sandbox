@@ -23,11 +23,15 @@ export default class SPK1_1 {
     }
 
     trace() {
-        return this.a.add(this.b);
+        return this.a.add(this.d);
     }
 
     static get UNIT () {
         return new SPK1_1(Quaternion.ONE, Quaternion.ZERO,
                           Quaternion.ZERO, Quaternion.ONE);
     }
+
+    toString(){
+		return '{'+ this.a.toString() +','+ this.b.toString() +'\n'+ this.c.toString() +','+ this.d.toString() +'}';
+	}
 }
