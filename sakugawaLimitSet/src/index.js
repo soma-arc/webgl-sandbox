@@ -6,11 +6,12 @@ import Vec3 from './geometry/vector3.js';
 
 import Complex from './2d/complex.js';
 import GrandmaRecipe from './2d/grandmaRecipe.js';
-import DfsOperator from './2d/dfsOperator.js';
+import DfsComplexOperator from './2d/dfsOperator.js';
 
 import Quaternion from './quaternion.js';
 import SPK1_1 from './spk1_1.js';
-import SakugawaRecipe from './sakugawaRecipe.js';
+import SakugawaRecipe from './sakugawaRecipe.js'; 
+import DFSOperator from './DFSOperator.js';
 
 const RENDER_FRAG = require('./shaders/render.frag');
 const RENDER_VERT = require('./shaders/render.vert');
@@ -32,39 +33,42 @@ window.addEventListener('load', () => {
 
     const am = new SPK1_1(a, b, b, a);
     const bm = new SPK1_1(b, a, b, b);
-    console.log("am:\n"+ am.toString());
-    console.log("bm:\n"+ bm.toString());
-    console.log("am * bm:\n"+ (am.mult(bm)).toString());
-    console.log("bm * am:\n"+ (bm.mult(am)).toString());
-    console.log("trace(am)\n"+ am.trace().toString());
-    console.log("trace(bm)\n"+ bm.trace().toString());
-    console.log("inverse(am)\n"+ am.inverse().toString());
-    console.log("inverse(bm)\n"+ bm.inverse().toString());
+    console.log('am:\n'+ am.toString());
+    console.log('bm:\n'+ bm.toString());
+    console.log('am * bm:\n'+ (am.mult(bm)).toString());
+    console.log('bm * am:\n'+ (bm.mult(am)).toString());
+    console.log('trace(am)\n'+ am.trace().toString());
+    console.log('trace(bm)\n'+ bm.trace().toString());
+    console.log('inverse(am)\n'+ am.inverse().toString());
+    console.log('inverse(bm)\n'+ bm.inverse().toString());
     console.log();
 
     const z0_1 = new Quaternion(-1, 0 ,0 ,0);
     const thetaA_1 = 0;
     const thetaB_1 = Math.PI / 2;
     const recipe1 = new SakugawaRecipe(z0_1, thetaA_1, thetaB_1);
-    console.log("recipe1 a\n"+recipe1.a.toString());
-    console.log("recipe1 b\n"+recipe1.b.toString());
+    console.log('recipe1 a\n'+recipe1.a.toString());
+    console.log('recipe1 b\n'+recipe1.b.toString());
     console.log();
 
     const z0_2 = new Quaternion(-2, 0 ,0 ,0);
     const thetaA_2 = Math.PI / 2;
     const thetaB_2 = 0;
     const recipe2 = new SakugawaRecipe(z0_2, thetaA_2, thetaB_2);
-    console.log("recipe2 a\n"+recipe2.a.toString());
-    console.log("recipe2 b\n"+recipe2.b.toString());
+    console.log('recipe2 a\n'+recipe2.a.toString());
+    console.log('recipe2 b\n'+recipe2.b.toString());
     console.log();
 
-    const recipe = new GrandmaRecipe(new Complex(2, 0.0),
-                                     new Complex(2, 0.0),
-                                     false);
-    const dfs = new DfsOperator(recipe.gens);
-    dfs.initialize(12, 0.005);
+    const dfs = new DFSOperator(recipe1.a, recipe1.b, 1, 0.1);
     dfs.search();
-    console.log(dfs.pointList);
+
+    // const recipe = new GrandmaRecipe(new Complex(2, 0.0),
+    //                                  new Complex(2, 0.0),
+    //                                  false);
+    // const dfs = new DfsComplexOperator(recipe.gens);
+    // dfs.initialize(12, 0.005);
+    // dfs.search();
+    // console.log(dfs.pointList);
 
     const canvas = document.getElementById('canvas');
     const gl = GetWebGL2Context(canvas);
@@ -104,7 +108,7 @@ window.addEventListener('load', () => {
     const mvpLocation = gl.getUniformLocation(renderProgram, 'u_mvpMatrix');
     gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
 
-    gl.drawArrays(gl.LINE_LOOP, 0, dfs.pointList.length/3);
+    gl.drawArrays(gl.LINE_LOOP, 0, dfs.points/3);
     gl.flush();
 
 });
