@@ -1,3 +1,5 @@
+const EPSILON = 0.0000000001;
+
 export default class Quaternion {
     /**
      *
@@ -110,10 +112,10 @@ export default class Quaternion {
     }
 
     isZero() {
-        return this.re === 0 &&
-            this.i === 0 &&
-            this.j === 0 &&
-            this.k === 0;
+        return Math.abs(this.re) < EPSILON &&
+            Math.abs(this.i) < EPSILON &&
+            Math.abs(this.j) < EPSILON &&
+            Math.abs(this.k) < EPSILON;
     }
 
     isInfinity() {
@@ -175,10 +177,10 @@ export default class Quaternion {
     }
 
     equals(q) {
-        return this.re === q.re &&
-            this.i === q.i &&
-            this.j === q.j &&
-            this.k === q.k;
+        return Math.abs(this.re - q.re) < EPSILON &&
+            Math.abs(this.i - q.i) < EPSILON &&
+            Math.abs(this.j - q.j) < EPSILON &&
+            Math.abs(this.k - q.k) < EPSILON;
     }
 
     static get ZERO() {

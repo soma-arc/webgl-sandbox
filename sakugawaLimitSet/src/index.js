@@ -12,6 +12,8 @@ import Quaternion from './quaternion.js';
 import SPK1_1 from './spk1_1.js';
 import SakugawaRecipe from './sakugawaRecipe.js'; 
 import DFSOperator from './DFSOperator.js';
+import { ComputeMatrix, ComputeFixedPoint,
+         MobiusOnPoint, DistQuaternion3D } from './util.js';
 
 const RENDER_FRAG = require('./shaders/render.frag');
 const RENDER_VERT = require('./shaders/render.vert');
@@ -59,8 +61,28 @@ window.addEventListener('load', () => {
     console.log('recipe2 b\n'+recipe2.b.toString());
     console.log();
 
+    console.log('Fix a');
+    console.log(ComputeFixedPoint(recipe1.a));
+    console.log('Fix b');
+    console.log(ComputeFixedPoint(recipe1.b));
+    
     const dfs = new DFSOperator(recipe1.a, recipe1.b, 1, 0.1);
-    dfs.search();
+    console.log('gens');
+    console.log(dfs.gens[1].toString());
+    console.log(dfs.gens[2].toString());
+    console.log(dfs.gens[3].toString());
+    console.log(dfs.gens[4].toString());
+    console.log();
+    console.log();
+    console.log('Fixed Points');
+    for(let i = 1; i <= 4; i ++){
+		for(let j = 1; j <= 4; j++){
+            console.log(`(${i}, ${j})`);
+			console.log(dfs.fixedPoint[i][j].toString());
+		}
+	}
+    console.log();
+    //dfs.search();
 
     // const recipe = new GrandmaRecipe(new Complex(2, 0.0),
     //                                  new Complex(2, 0.0),

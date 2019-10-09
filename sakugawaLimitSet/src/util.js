@@ -41,29 +41,36 @@ export function ComputeFixedPoint(m) {
     const tau = sigma.mult(m.a.cliffordTransposition()).add(m.d);
     const delta = ComputeDelta(m);
     let t = Quaternion.ONE;
+    console.log('sigma '+ sigma);
+	console.log('tau '+ tau);
+	console.log('delta '+ delta);
 
     if(sigma.equals(Quaternion.ONE)) {
         if(tau.isReal()) {
             if(Math.abs(m.trace().re) >= 2) {
+                console.log('in 1');
                 t = tau.scale(0.5).add( tau.scale(0.5).mult(tau.scale(0.5)).sub(Quaternion.ONE).sqrt() );
             } else {
                 // There are infinite number of fixed points
                 console.log('(1) infinity');
             }
         } else {
+            console.log('in 2');
             const TValue = tau.re + Math.sqrt((tau.re * tau.re - delta - 4)/2 + Math.sqrt(Math.pow(delta + 4 - tau.re * tau.re, 2) + 4 * tau.re * tau.re * delta));
             const T = new Quaternion(TValue, 0, 0, 0);
-            const NValue = TValue / (TValue - 2 * tau.re());
+            const NValue = TValue / (TValue - 2 * tau.re);
             const N = new Quaternion(NValue, 0, 0, 0);
             t = (T.sub(tau)).inverse().mult(N.sub(sigma));
         }
     } else {
         if (delta <= 0) {
+            console.log('in 3');
             const N = Quaternion.ONE;
             const TValue = tau.re - Math.sqrt(-delta);
             const T = new Quaternion(TValue, 0, 0, 0);
             t = T.sub(tau).inverse().mult(N.sub(sigma));
         } else {
+            console.log('in 4');
             const TValue = tau.re + Math.sqrt((tau.re * tau.re - delta - 4)/2 + Math.sqrt(Math.pow(delta + 4 - tau.re * tau.re, 2) + 4 * tau.re * tau.re * delta));
             const T = new Quaternion(TValue, 0, 0, 0);
             const NValue = TValue / (TValue - 2 * tau.re);
