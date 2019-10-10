@@ -69,11 +69,15 @@ export default class DFSOperator {
         repet[4][3] = this.gens[3].mult(this.gens[4]);
         repet[4][4] = ComputeMatrix(this.gens[3], this.gens[2], this.gens[1], this.gens[4]);
 
+        console.log('---Compute Fixed Points---');
         for(let i = 1; i <= 4; i ++){
 			for(let j = 1; j <= 4; j++){
+                console.log(`(${i}, ${j})`);
 				this.fixedPoint[i][j] = ComputeFixedPoint(repet[i][j]);
+		        console.log(this.fixedPoint[i][j].toString());
 			}
 		}
+        console.log('---done---');
     }
 
     search() {
@@ -87,7 +91,7 @@ export default class DFSOperator {
             } while ((this.level !== 0) && !this.isAvailableTurn());
 
             this.turnAndGoForward();
-        } while (this.level !== 1 || this.tags[1] !== 0);
+        } while (this.level !== 1 || this.tags[1] !== 1);
     }
 
     goForward(){
@@ -96,16 +100,17 @@ export default class DFSOperator {
 		if(this.tags[this.level] === 0)
 			this.tags[this.level] = 4;
 		//dumpWord();
-		console.log("go forward current level "+ this.level +"tag["+ this.level +"]"+ this.tags[this.level]);
+		//console.log("go forward current level "+ this.level +" tag["+ this.level +"]"+ this.tags[this.level]);
 		this.word[this.level] = this.word[this.level -1].mult(this.gens[this.tags[this.level]]);
 	}
 
 	goBackward(){
 		this.level--;
-		console.log("go backward current level"+ this.level);
+		//console.log("go backward current level"+ this.level);
 	}
 
 	isAvailableTurn(){
+        //console.log('isAvailableTurn');
 		let t = Math.abs((this.tags[this.level] + 2)%4);
 		if(t === 0)
 			t = 4;
@@ -119,6 +124,7 @@ export default class DFSOperator {
 	}
 
 	turnAndGoForward(){
+        //console.log('turnAndGoForward');
 		this.tags[this.level + 1] = Math.abs((this.tags[this.level + 1]) - 1 % 4);
 		if(this.tags[this.level +1] === 0)
 			this.tags[this.level + 1] = 4;
@@ -128,11 +134,12 @@ export default class DFSOperator {
 		else
 			this.word[this.level + 1] = this.word[this.level].mult(this.gens[this.tags[this.level + 1]]);
 		this.level++;
-		console.log("turn and go forward current level"+ this.level);
+		//console.log("turn and go forward current level"+ this.level);
 	}
 	
 	//Indra's pearls p207 “ÁŽêŒêƒAƒ‹ƒSƒŠƒYƒ€
 	branchTermination(){
+        //console.log('branchTermination');
 		const z = new Array(4 + 1);
 		for(let j = 1; j <= 4; j++){
 			z[j] = MobiusOnPoint(this.word[this.level], this.fixedPoint[this.tags[this.level]][j]);
@@ -163,8 +170,12 @@ export default class DFSOperator {
 				//System.out.print(tags[i]);
 				t[i] = this.tags[i];
 			}
-			//System.out.println();
-            this.points.push(z[1], z[2], z[3], z[4]);
+			//console.log('push');
+            //this.points.push(z[1], z[2], z[3], z[4]);
+            this.points.push([[z[1].re, z[1].i, z[1].j],
+                              [z[2].re, z[2].i, z[2].j],
+                              [z[3].re, z[3].i, z[3].j],
+                              [z[4].re, z[4].i, z[4].j]]);
 			return true;
 		}else{
 			return false;

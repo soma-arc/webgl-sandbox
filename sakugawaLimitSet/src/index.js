@@ -61,12 +61,20 @@ window.addEventListener('load', () => {
     console.log('recipe2 b\n'+recipe2.b.toString());
     console.log();
 
-    console.log('Fix a');
+    console.log('---Fix a---');
     console.log(ComputeFixedPoint(recipe1.a));
-    console.log('Fix b');
+    console.log('---done----');
+    console.log('---Fix b---');
     console.log(ComputeFixedPoint(recipe1.b));
+    console.log('---done---');
+    console.log('---Fix a inverse---');
+    console.log(ComputeFixedPoint(recipe1.a.inverse()));
+    console.log('---done----');
+    console.log('---Fix b inverse---');
+    console.log(ComputeFixedPoint(recipe1.b.inverse()));
+    console.log('---done---');
     
-    const dfs = new DFSOperator(recipe1.a, recipe1.b, 1, 0.1);
+    const dfs = new DFSOperator(recipe1.a, recipe1.b, 15, 0.01);
     console.log('gens');
     console.log(dfs.gens[1].toString());
     console.log(dfs.gens[2].toString());
@@ -82,8 +90,9 @@ window.addEventListener('load', () => {
 		}
 	}
     console.log();
-    //dfs.search();
-
+    dfs.search();
+    console.log(dfs.points);
+    
     // const recipe = new GrandmaRecipe(new Complex(2, 0.0),
     //                                  new Complex(2, 0.0),
     //                                  false);
@@ -93,44 +102,71 @@ window.addEventListener('load', () => {
     // console.log(dfs.pointList);
 
     const canvas = document.getElementById('canvas');
-    const gl = GetWebGL2Context(canvas);
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clearDepth(1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    const renderProgram = gl.createProgram();
-    AttachShader(gl, RENDER_VERT,
-                 renderProgram, gl.VERTEX_SHADER);
-    AttachShader(gl, RENDER_FRAG,
-                 renderProgram, gl.FRAGMENT_SHADER);
-    LinkProgram(gl, renderProgram);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'red';
+    ctx.translate(canvas.width / 2, canvas.height/2);
+    const scale = 100;
+    // for(let i = 0; i < dfs.points.length/12; i++) {
+    //     ctx.beginPath();
+    //     ctx.moveTo(dfs.points[i * 4 + 0]*scale, dfs.points[i * 3 + 2]*scale);
+    //     ctx.lineTo(dfs.points[(i + 1) * 3 + 0]*scale, dfs.points[(i + 1) * 3 + 2]*scale);
+    //     ctx.lineTo(dfs.points[(i + 2) * 3 + 0]*scale, dfs.points[(i + 2) * 3 + 2]*scale);
+    //     ctx.lineTo(dfs.points[(i + 3) * 3 + 0]*scale, dfs.points[(i + 3) * 3 + 2]*scale);
+    //     //ctx.closePath();
+    //     ctx.stroke();
+    // }
+    for(const points of dfs.points) {
+        ctx.beginPath();
+        ctx.moveTo(points[0][0]* scale, points[0][2]* scale);
+        ctx.lineTo(points[1][0]* scale, points[1][2]* scale);
+        ctx.lineTo(points[2][0]* scale, points[2][2]* scale);
+        ctx.lineTo(points[3][0]* scale, points[3][2]* scale);
+        ctx.stroke(); 
+    }
 
-    const vPositionAttrib = gl.getAttribLocation(renderProgram,
-                                                 'vPosition');
-    gl.enableVertexAttribArray(vPositionAttrib);
 
-    const vertexPosition = [
-        0.0, 1.0, 0.0,
-        1.0, 0.0, 0.0,
-        -1.0, 0.0, 0.0
-    ];
-    const vbo = CreateStaticVbo(gl, dfs.pointList);
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    // const gl = GetWebGL2Context(canvas);
 
-    const attStride = 3;
-    gl.vertexAttribPointer(vPositionAttrib, attStride, gl.FLOAT, false, 0, 0);
+    // gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // gl.clearDepth(1.0);
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    const viewM = Transform.lookAt(new Point3(0, 0, 2),
-                                   new Point3(0, 0, 0),
-                                   new Vec3(0, 1, 0));
-    const projectM = Transform.perspective(90, 0.001, 1000);
-    const mvpM = projectM.mult(viewM);
+    // const renderProgram = gl.createProgram();
+    // AttachShader(gl, RENDER_VERT,
+    //              renderProgram, gl.VERTEX_SHADER);
+    // AttachShader(gl, RENDER_FRAG,
+    //              renderProgram, gl.FRAGMENT_SHADER);
+    // LinkProgram(gl, renderProgram);
 
-    const mvpLocation = gl.getUniformLocation(renderProgram, 'u_mvpMatrix');
-    gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
+    // const vPositionAttrib = gl.getAttribLocation(renderProgram,
+    //                                              'vPosition');
+    // gl.enableVertexAttribArray(vPositionAttrib);
 
-    gl.drawArrays(gl.LINE_LOOP, 0, dfs.points/3);
-    gl.flush();
+    // const vertexPosition = [
+    //     0.0, 1.0, 0.0,
+    //     1.0, 0.0, 0.0,
+    //     -1.0, 0.0, 0.0
+    // ];
+    // const vbo = CreateStaticVbo(gl, dfs.points);
+    // gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+
+    // const attStride = 3;
+    // gl.vertexAttribPointer(vPositionAttrib, attStride, gl.FLOAT, false, 0, 0);
+
+    // const viewM = Transform.lookAt(new Point3(0, 1, 0),
+    //                                new Point3(0, 0, 0),
+    //                                new Vec3(1, 0, 0));
+    // const projectM = Transform.perspective(90, 0.001, 1000);
+    // const mvpM = projectM.mult(viewM);
+
+    // const mvpLocation = gl.getUniformLocation(renderProgram, 'u_mvpMatrix');
+    // gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
+
+    // gl.drawArrays(gl.LINE_LOOP, 0, dfs.points/3);
+    // gl.flush();
 
 });

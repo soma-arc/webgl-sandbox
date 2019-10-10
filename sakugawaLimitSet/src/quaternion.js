@@ -112,6 +112,10 @@ export default class Quaternion {
     }
 
     isZero() {
+        // return (this.re) === 0 &&
+        //     (this.i) === 0 &&
+        //     (this.j) === 0 &&
+        //     (this.k) === 0;
         return Math.abs(this.re) < EPSILON &&
             Math.abs(this.i) < EPSILON &&
             Math.abs(this.j) < EPSILON &&
@@ -126,7 +130,9 @@ export default class Quaternion {
     }
 
     isReal() {
-        return (this.i === 0 && this.j === 0 && this.k === 0);
+        return (Math.abs(this.i) < EPSILON &&
+                Math.abs(this.j) < EPSILON &&
+                Math.abs(this.k) < EPSILON);
     }
 
     isComplex() {
@@ -158,7 +164,7 @@ export default class Quaternion {
     inverse() {
         const v = Math.pow(this.norm(), 2);
         if(v === Number.POSITIVE_INFINITY) return Quaternion.ZERO;
-        else if (v === 0) return Quaternion.INFINITY;
+        else if (v < EPSILON) return Quaternion.INFINITY;
         return this.conjugation().div(v);
     }
 
