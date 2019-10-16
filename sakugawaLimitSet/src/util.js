@@ -47,7 +47,7 @@ export function ComputeFixedPoint(m) {
 
     if(sigma.equals(Quaternion.ONE)) {
         if(tau.isReal()) {
-            if(Math.abs(m.trace().re) >= 2) {
+            if(Math.abs(m.trace().re) >= 1.9999999999) {
                 console.log('in 1c');
                 t = tau.scale(0.5).add( tau.scale(0.5).mult(tau.scale(0.5)).sub(Quaternion.ONE).sqrt() );
             } else {
@@ -63,14 +63,14 @@ export function ComputeFixedPoint(m) {
             t = (T.sub(tau)).inverse().mult(N.sub(sigma));
         }
     } else {
-        if (delta <= -0.0000000001) {
+        if (delta <= 0.0000000001) {
             console.log('in 3c');
             const N = Quaternion.ONE;
             const TValue = tau.re - Math.sqrt(-delta);
             const T = new Quaternion(TValue, 0, 0, 0);
             t = T.sub(tau).inverse().mult(N.sub(sigma));
-            //console.log('T '+ T.toString());
-            //console.log('t '+ t.toString());
+            console.log('T '+ T.toString());
+            console.log('t '+ t.toString());
         } else {
             console.log('in 4');
             const TValue = tau.re + Math.sqrt((tau.re * tau.re - delta - 4)/2 + Math.sqrt(Math.pow(delta + 4 - tau.re * tau.re, 2) + 4 * tau.re * tau.re * delta));
@@ -81,8 +81,8 @@ export function ComputeFixedPoint(m) {
         }
     }
     const V = m.c.inverse().mult(t.sub(m.d));
-    //console.log('m.c.inverse() '+ m.c.inverse().toString());
-    //console.log('t.sub(m.d) '+ t.sub(m.d).toString());
+    console.log('m.c.inverse() '+ m.c.inverse().toString());
+    console.log('t.sub(m.d) '+ t.sub(m.d).toString());
     return V;
 }
 
