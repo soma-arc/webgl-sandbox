@@ -110,21 +110,12 @@ window.addEventListener('load', () => {
     ctx.strokeStyle = 'red';
     ctx.translate(canvas.width / 2, canvas.height/2);
     const scale = 100;
-    // for(let i = 0; i < dfs.points.length/12; i++) {
-    //     ctx.beginPath();
-    //     ctx.moveTo(dfs.points[i * 4 + 0]*scale, dfs.points[i * 3 + 2]*scale);
-    //     ctx.lineTo(dfs.points[(i + 1) * 3 + 0]*scale, dfs.points[(i + 1) * 3 + 2]*scale);
-    //     ctx.lineTo(dfs.points[(i + 2) * 3 + 0]*scale, dfs.points[(i + 2) * 3 + 2]*scale);
-    //     ctx.lineTo(dfs.points[(i + 3) * 3 + 0]*scale, dfs.points[(i + 3) * 3 + 2]*scale);
-    //     //ctx.closePath();
-    //     ctx.stroke();
-    // }
     for(const points of dfs.points) {
         ctx.beginPath();
-        ctx.moveTo(points[0][0]* scale, points[0][2]* scale);
-        ctx.lineTo(points[1][0]* scale, points[1][2]* scale);
-        ctx.lineTo(points[2][0]* scale, points[2][2]* scale);
-        ctx.lineTo(points[3][0]* scale, points[3][2]* scale);
+        ctx.moveTo(points[0][0] * scale, points[0][2] * scale);
+        ctx.lineTo(points[1][0] * scale, points[1][2] * scale);
+        ctx.lineTo(points[2][0] * scale, points[2][2] * scale);
+        ctx.lineTo(points[3][0] * scale, points[3][2] * scale);
         ctx.stroke(); 
     }
 
