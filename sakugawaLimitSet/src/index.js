@@ -74,7 +74,7 @@ window.addEventListener('load', () => {
     console.log(ComputeFixedPoint(recipe1.b.inverse()));
     console.log('---done---');
     
-    const dfs = new DFSOperator(recipe1.a, recipe1.b, 15, 0.01);
+    const dfs = new DFSOperator(recipe1.a, recipe1.b, 15, 0.001);
     console.log('gens');
     console.log(dfs.gens[1].toString());
     console.log(dfs.gens[2].toString());
