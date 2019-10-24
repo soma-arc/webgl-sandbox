@@ -74,7 +74,7 @@ export default class DFSOperator {
 			for(let j = 1; j <= 4; j++){
                 console.log(`(${i}, ${j})`);
 				this.fixedPoint[i][j] = ComputeFixedPoint(repet[i][j]);
-		        console.log(this.fixedPoint[i][j].toString());
+	            console.log(this.fixedPoint[i][j].toString());
 			}
 		}
         console.log('---done---');
@@ -172,10 +172,10 @@ export default class DFSOperator {
 			}
 			//console.log('push');
             //this.points.push(z[1], z[2], z[3], z[4]);
-            this.points.push([[z[1].re, z[1].i, z[1].j],
-                              [z[2].re, z[2].i, z[2].j],
-                              [z[3].re, z[3].i, z[3].j],
-                              [z[4].re, z[4].i, z[4].j]]);
+            this.points.push(z[1].re, z[1].i, z[1].j,
+                             z[2].re, z[2].i, z[2].j,
+                             z[3].re, z[3].i, z[3].j,
+                             z[4].re, z[4].i, z[4].j);
 			return true;
 		}else{
 			return false;

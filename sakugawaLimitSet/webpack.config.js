@@ -16,6 +16,14 @@ module.exports = () => ({
     module: {
         rules: [
             {
+                test: /\.vue$/,
+                use: [
+                    {
+                        loader: 'vue-loader',
+                    }
+                ]
+            },
+            {
                 test: /\.(glsl|vert|frag)$/,
                 exclude: /\.(njk|nunjucks)\.(glsl|vert|frag)$/,
                 use: [

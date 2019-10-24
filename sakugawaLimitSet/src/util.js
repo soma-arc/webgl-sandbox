@@ -39,7 +39,7 @@ export function ComputeDelta(m) {
 export function ComputeFixedPoint(m) {
     const sigma = m.c.mult(m.c.cliffordTransposition().inverse());
     const tau = sigma.mult(m.a.cliffordTransposition()).add(m.d);
-    const delta = ComputeDelta(m);
+    let delta = ComputeDelta(m);
     let t = Quaternion.ONE;
     console.log('sigma '+ sigma);
 	console.log('tau '+ tau);
@@ -64,6 +64,7 @@ export function ComputeFixedPoint(m) {
         }
     } else {
         if (delta <= 0.0000000001) {
+            if(delta > 0) delta = 0;
             console.log('in 3c');
             const N = Quaternion.ONE;
             const TValue = tau.re - Math.sqrt(-delta);
