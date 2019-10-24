@@ -10,17 +10,29 @@
          style="width: 80px;" @input="changeParam"></input>MaxLevel<br>
   <input type="number" v-model.number="canvas.threshold" step="0.01"
          style="width: 80px;" @input="changeParam"></input>Threshold<br>
-  </div>
+  <button @click="applyGen_a">a</button>
+  <button @click="applyGen_b">b</button>
+  <button @click="applyGen_A">A</button>
+  <button @click="applyGen_B">B</button>
+</div>
 </template>
 
 <script>
-  export default {
-      props: ['canvas'],
-      methods: {
-          changeParam: function(event) {
-              this.canvas.calcLimitSet();
-              this.canvas.render();
-          }
-      }
-  }
+export default {
+    props: ['canvas'],
+    methods: {
+        changeParam: function(event) {
+            this.canvas.calcLimitSet();
+            this.canvas.render();
+        },
+        applyGen_a: function(event) {
+        },
+        applyGen_b: function(event) {
+        },
+        applyGen_A: function(event) {
+        },
+        applyGen_B: function(event) {
+        }
+    }
+}
 </script>

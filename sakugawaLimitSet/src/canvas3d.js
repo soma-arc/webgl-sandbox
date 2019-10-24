@@ -9,7 +9,7 @@ import DFSOperator from './DFSOperator.js';
 import { CameraOnSphere } from './camera.js';
 import { GetWebGL2Context, AttachShader, LinkProgram,
          CreateStaticVbo } from './glUtils.js';
-
+import { MobiusOnPoint } from './util.js';
 const RENDER_FRAG = require('./shaders/render.frag');
 const RENDER_VERT = require('./shaders/render.vert');
 
@@ -123,6 +123,12 @@ export default class Canvas3D extends Canvas {
         console.log('Done');
         const vbo = CreateStaticVbo(this.gl, this.dfs.points);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vbo);
+    }
+
+    calcOrbit() {
+        const origin = new Quaternion(0, 0, 0, 0);
+        //MobiusOnPoint(this.dfs.a, origin);
+        this.orbits = [];
     }
     
     render() {
