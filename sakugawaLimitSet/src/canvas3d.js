@@ -42,7 +42,7 @@ export default class Canvas3D extends Canvas {
 
         this.z0 = -1;
         this.thetaA = 0;
-        this.thetaB = Math.PI / 2;
+        this.thetaB = Math.PI / 2 + 0.1;
         this.maxLevel = 15;
         this.threshold = 0.001;
 
