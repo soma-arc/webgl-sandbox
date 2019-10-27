@@ -37,17 +37,23 @@ export default class Canvas3D extends Canvas {
         LinkProgram(this.gl, this.renderProgram);
 
         this.vPositionAttrib = this.gl.getAttribLocation(this.renderProgram,
-                                                     'vPosition');
+                                                         'vPosition');
         this.gl.enableVertexAttribArray(this.vPositionAttrib);
 
         this.z0 = -1;
         this.thetaA = 0;
-        this.thetaB = Math.PI / 2 + 0.1;
+        this.thetaB = Math.PI / 2;// + 0.1;
         this.maxLevel = 15;
         this.threshold = 0.001;
 
+        this.orbitStartX = 0;
+        this.orbitStartY = 0;
+        this.orbitStartHeight = 0;
+        this.orbitGenIndex = 3;
+        
         this.calcLimitSet();
         this.render();
+
     }
 
     /**
@@ -121,14 +127,57 @@ export default class Canvas3D extends Canvas {
         console.log('search');
         this.dfs.search();
         console.log('Done');
-        const vbo = CreateStaticVbo(this.gl, this.dfs.points);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vbo);
+
+        this.calcOrbit();
+        this.pointsVbo = CreateStaticVbo(this.gl, this.dfs.points);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsVbo);
     }
 
-    calcOrbit() {
-        const origin = new Quaternion(0, 0, 0, 0);
-        //MobiusOnPoint(this.dfs.a, origin);
+    keydownListener(event) {
+        if (event.key === 'ArrowRight') {
+            this.orbitStartX += 0.05;
+        } else if (event.key === 'ArrowLeft') {
+            this.orbitStartX -= 0.05;
+        } else if (event.key === 'ArrowUp') {
+            this.orbitStartY += 0.05;
+        } else if (event.key === 'ArrowDown') {
+            this.orbitStartY -= 0.05;
+        } else if (event.key === 'w') {
+            this.orbitStartHeight += 0.05;
+        } else if (event.key === 's') {
+            this.orbitStartHeight -= 0.05;
+        }
+        this.calcOrbit();
+        this.render();
+    }
+
+    resetOrbit() {
         this.orbits = [];
+        this.orbitsVbo = CreateStaticVbo(this.gl, this.orbits);
+        this.orbitStartX = 0;
+        this.orbitStartHeight = 0;
+        this.orbitStartY = 0;
+        this.render();
+        this.canvas.focus();
+    }
+    
+    calcOrbit() {
+        const origin1 = new Quaternion(this.orbitStartX, this.orbitStartHeight, this.orbitStartY, 0);
+        const gen = this.dfs.gens[this.orbitGenIndex];
+        const origin2 = MobiusOnPoint(gen, origin1);
+        const origin3 = MobiusOnPoint(gen, origin2);
+        const origin4 = MobiusOnPoint(gen, origin3);
+        const origin5 = MobiusOnPoint(gen, origin4);
+        const origin6 = MobiusOnPoint(gen, origin5);
+        const origin7 = MobiusOnPoint(gen, origin6);
+        this.orbits = [origin1.re, origin1.i, origin1.j, 
+                       origin2.re, origin2.i, origin2.j, 
+                       origin3.re, origin3.i, origin3.j, 
+                       origin4.re, origin4.i, origin4.j,
+                       origin5.re, origin5.i, origin5.j, 
+                       origin6.re, origin6.i, origin6.j,
+                       origin7.re, origin7.i, origin7.j];
+        this.orbitsVbo = CreateStaticVbo(this.gl, this.orbits);
     }
     
     render() {
@@ -138,8 +187,9 @@ export default class Canvas3D extends Canvas {
         gl.clearDepth(1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsVbo);
         const attStride = 3;
-        this.gl.vertexAttribPointer(this.vPositionAttrib, attStride, this.gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(this.vPositionAttrib, attStride, this.gl.FLOAT, false, 0, 0);
 
         const viewM = Transform.lookAt(new Point3(this.camera.pos.x, this.camera.pos.y, this.camera.pos.z),
                                        new Point3(this.camera.target.x, this.camera.target.y, this.camera.target.z),
@@ -151,6 +201,13 @@ export default class Canvas3D extends Canvas {
         gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
 
         gl.drawArrays(gl.LINES, 0, this.dfs.points.length/3);
+        //gl.flush();
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.orbitsVbo);
+        gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
+        gl.vertexAttribPointer(this.vPositionAttrib, attStride, this.gl.FLOAT, false, 0, 0);
+
+        gl.drawArrays(gl.LINE_STRIP, 0, this.orbits.length/3);
         gl.flush();
     }
 }
