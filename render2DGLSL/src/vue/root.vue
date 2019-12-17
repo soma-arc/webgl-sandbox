@@ -1,6 +1,6 @@
 <template>
 <div id="root">
-  <canvas id="content" width="512px" height="512px"></canvas><br>
+  <canvas id="canvas" width="512px" height="512px"></canvas><br>
   <input v-model.number="productRenderWidth"
          style="width: 80px;" type="number" min="0"> :
   <input v-model.number="productRenderHeight"
