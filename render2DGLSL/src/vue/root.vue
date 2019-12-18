@@ -7,7 +7,7 @@
          style="width: 80px;" type="number" min="0">w:h<br>
   <input v-model.number="productRenderMaxSamples"
          style="width: 80px;" type="number" min="0">Samples<br>
-  <button @click="startRender">Render</button><br>
+  <button @click="startRendering">Render</button><br>
 </div>
 </template>
 
@@ -22,7 +22,11 @@ export default {
         }
     },
     methods: {
-        startRender: function() {
+        startRendering: function() {
+            this.canvasHandler.canvas2d.startProductRendering(this.productRenderWidth,
+                                                              this.productRenderHeight,
+                                                              this.productRenderMaxSamples,
+                                                              'image.png');
         }
     }
 }
