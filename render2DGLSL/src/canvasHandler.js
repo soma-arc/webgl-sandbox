@@ -11,6 +11,8 @@ export default class CanvasHandler {
     }
 
     render() {
-        this.canvas2d.render();
+        if (this.canvas2d.isProductRendering) {
+            this.canvas2d.renderProduct();
+        }
     }
 }

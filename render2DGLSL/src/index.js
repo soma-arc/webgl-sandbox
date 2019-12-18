@@ -19,4 +19,11 @@ window.addEventListener('load', () => {
 
     canvasHandler.init();
     canvasHandler.render();
+
+    function renderLoop() {
+        canvasHandler.render();
+        requestAnimationFrame(renderLoop);
+    }
+
+    renderLoop();
 });

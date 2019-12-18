@@ -8,6 +8,7 @@ const RENDER_FRAGMENT = require('./shaders/render.frag');
 const RENDER_FLIPPED_VERTEX = require('./shaders/renderFlipped.vert');
 
 const SIMPLE_FRAG = require('./shaders/simple.frag');
+const HYPERBOLIC_FRAG = require('./shaders/hyperbolicTessellation.frag');
 
 export default class Canvas2D extends Canvas {
     constructor(canvasId) {
@@ -18,7 +19,7 @@ export default class Canvas2D extends Canvas {
 
         this.isProductRendering = false;
 
-        this.productRenderMaxSamples = 0;
+        this.productRenderMaxSamples = 1;
     }
 
     init() {
@@ -68,7 +69,7 @@ export default class Canvas2D extends Canvas {
         this.renderProgram = this.gl.createProgram();
         AttachShader(this.gl, RENDER_FLIPPED_VERTEX,
                      this.renderProgram, this.gl.VERTEX_SHADER);
-        AttachShader(this.gl, SIMPLE_FRAG,
+        AttachShader(this.gl, HYPERBOLIC_FRAG,
                      this.renderProgram, this.gl.FRAGMENT_SHADER);
         LinkProgram(this.gl, this.renderProgram);
         this.renderVAttrib = this.gl.getAttribLocation(this.renderProgram,
@@ -150,10 +151,25 @@ export default class Canvas2D extends Canvas {
         this.renderTexturesToCanvas(this.renderTextures);
     }
 
+    renderFlippedTex(textures, width, height) {
+        console.log(width);
+        this.gl.viewport(0, 0, width, height);
+        this.gl.useProgram(this.productRenderProgram);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, textures[0]);
+        const tex = this.gl.getUniformLocation(this.productRenderProgram, 'u_texture');
+        this.gl.uniform1i(tex, textures[0]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.vertexAttribPointer(this.renderVAttrib, 2,
+                                    this.gl.FLOAT, false, 0, 0);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        this.gl.flush();
+    }
+
     renderProduct() {
         this.renderToTexture(this.productRenderTextures,
-                             this.productRenderResolution.x,
-                             this.productRenderResolution.y);
+                             this.productRenderResolution[0],
+                             this.productRenderResolution[1]);
         this.numSamples++;
 
         if (this.numSamples === this.productRenderMaxSamples) {
@@ -162,8 +178,8 @@ export default class Canvas2D extends Canvas {
                                          this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D,
                                          this.productRenderResultTexture, 0);
             this.renderFlippedTex(this.productRenderTextures,
-                                  this.productRenderResolution.x,
-                                  this.productRenderResolution.y);
+                                  this.productRenderResolution[0],
+                                  this.productRenderResolution[1]);
             this.saveImage(this.gl,
                            this.productRenderResolution[0],
                            this.productRenderResolution[1],
