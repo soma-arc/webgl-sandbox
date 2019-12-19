@@ -36,6 +36,10 @@ export default class Canvas3D extends Canvas {
                                                          'vPosition');
         this.gl.enableVertexAttribArray(this.vPositionAttrib);
 
+        this.normalAttrib = this.gl.getAttribLocation(this.renderProgram,
+                                                      'vNormal');
+        this.gl.enableVertexAttribArray(this.normalAttrib);
+        
         this.addEventListeners();
 
         this.vertexes = [];
@@ -107,43 +111,30 @@ export default class Canvas3D extends Canvas {
         }
     }
 
-    setData(vertexes, indexes) {
+    setData(vertexes, indexes, normals) {
         this.vertexes = vertexes;
         this.indexes = indexes;
+        this.normals = normals;
         this.vbo = CreateStaticVbo(this.gl, vertexes);
         this.ibo = CreateStaticIbo(this.gl, indexes);
-    }
-
-    keydownListener(event) {
-        if (event.key === 'ArrowRight') {
-            this.orbitStartX += 0.05;
-        } else if (event.key === 'ArrowLeft') {
-            this.orbitStartX -= 0.05;
-        } else if (event.key === 'ArrowUp') {
-            this.orbitStartY += 0.05;
-        } else if (event.key === 'ArrowDown') {
-            this.orbitStartY -= 0.05;
-        } else if (event.key === 'w') {
-            this.orbitStartHeight += 0.05;
-        } else if (event.key === 's') {
-            this.orbitStartHeight -= 0.05;
-        }
-        this.calcOrbit();
-        this.render();
+        this.normalVbo = CreateStaticVbo(this.gl, normals);
     }
 
     render() {
         const gl = this.gl;
-
+        
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clearDepth(1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vbo);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo);
+        gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.ibo);
 
         const attStride = 3;
         gl.vertexAttribPointer(this.vPositionAttrib, attStride, this.gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(this.gl.ARRAY_BUFFER, this.normalVbo);
+        gl.vertexAttribPointer(this.normalAttrib, attStride, this.gl.FLOAT, false, 0, 0);
 
         const viewM = Transform.lookAt(new Point3(this.camera.pos.x, this.camera.pos.y, this.camera.pos.z),
                                        new Point3(this.camera.target.x, this.camera.target.y, this.camera.target.z),
@@ -153,7 +144,7 @@ export default class Canvas3D extends Canvas {
 
         const mvpLocation = gl.getUniformLocation(this.renderProgram, 'u_mvpMatrix');
         gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
-        gl.drawElements(gl.TRIANGLES, this.indexes.length, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, this.vertexes.length, gl.UNSIGNED_SHORT, 0);
 
         gl.flush();
     }

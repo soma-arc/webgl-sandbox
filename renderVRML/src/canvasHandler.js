@@ -14,8 +14,8 @@ export default class CanvasHandler {
         this.canvas3d.render();
     }
 
-    setVertexesAndIndexes(vertexes, indexes) {
-        this.canvas3d.setData(vertexes, indexes);
+    setVertexesAndIndexes(vertexes, indexes, normals) {
+        this.canvas3d.setData(vertexes, indexes, normals);
         this.canvas3d.render();
     }
 }
