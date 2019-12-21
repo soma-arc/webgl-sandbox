@@ -9,6 +9,7 @@ const RENDER_FLIPPED_VERTEX = require('./shaders/renderFlipped.vert');
 
 const SIMPLE_FRAG = require('./shaders/simple.frag');
 const HYPERBOLIC_FRAG = require('./shaders/hyperbolicTessellation.frag');
+const KLEIN_FRAG = require('./shaders/kleinTessellation.frag');
 
 export default class Canvas2D extends Canvas {
     constructor(canvasId) {
@@ -69,7 +70,7 @@ export default class Canvas2D extends Canvas {
         this.renderProgram = this.gl.createProgram();
         AttachShader(this.gl, RENDER_FLIPPED_VERTEX,
                      this.renderProgram, this.gl.VERTEX_SHADER);
-        AttachShader(this.gl, HYPERBOLIC_FRAG,
+        AttachShader(this.gl, KLEIN_FRAG,
                      this.renderProgram, this.gl.FRAGMENT_SHADER);
         LinkProgram(this.gl, this.renderProgram);
         this.renderVAttrib = this.gl.getAttribLocation(this.renderProgram,

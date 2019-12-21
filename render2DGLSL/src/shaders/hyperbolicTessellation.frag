@@ -41,7 +41,7 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 }
 
 const int ITERATIONS = 50;
-int maxIterations = 20;
+int maxIterations = 4;
 int IIS(vec2 pos){
     if(length(pos) > 1.) return 0;
 
@@ -79,8 +79,10 @@ int IIS(vec2 pos){
 vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
     int d = IIS(position);
+    float alpha = 1.0;
     if(d == 0){
         col = vec3(0.,0.,0.);
+        alpha = 0.0;
     }else{
         if(mod(float(d), 2.) == 0.){
             col += hsv2rgb(vec3(0., 1., 1.));
@@ -88,7 +90,7 @@ vec4 computeColor(vec2 position) {
             col += hsv2rgb(vec3(0.5, 1., 1.));
         }
     }
-    return vec4(col, 1.0);
+    return vec4(col, alpha);
 }
 
 void main() {
