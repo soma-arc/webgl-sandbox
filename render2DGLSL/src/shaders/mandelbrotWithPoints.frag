@@ -79,6 +79,10 @@ vec4 computeColor(vec2 p) {
     // do some soft coloring based on distance
 	d = clamp( pow(4.0*d,0.04), 0.0, 1.0 );
 
+    if(d >= 0.8) {
+        return vec4( d, d, d, 0.0 );
+    }
+    
     return vec4( d, d, d, 1.0 );
 }
 

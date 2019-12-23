@@ -31,7 +31,7 @@ vec4 computeColor(vec2 p) {
     vec2 z = p;
     for(int i = 0; i < 360; i++){
         j++;
-        if(length(z) > 2.0){return vec4(1);}
+        if(length(z) > 2.0){return vec4(1, 1, 1, 0);}
         z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
     }
     float d = 0.;

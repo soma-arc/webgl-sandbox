@@ -29,20 +29,20 @@ vec4 computeColor(vec2 p) {
     float m2 = 0.0;
     vec2 dz = vec2(0.0);
 
-    vec2 pointRed = vec2(-1.751, 0.01);
+    vec2 pointRed = vec2(-1.750, 0.01);
     if(distance(p, pointRed) < 0.0005) {
         return vec4(1, 0, 0, 1);
     }
-    vec2 pointBlue = vec2(-0.05, 0.72);
-    if(distance(p, pointBlue) < 0.01) {
+    vec2 pointBlue = vec2(-1.778, -0.0);
+    if(distance(p, pointBlue) < 0.0005) {
         return vec4(0, 0, 1, 1);
     }
-    vec2 pointGreen = vec2(0.25, -.4);
-    if(distance(p, pointGreen) < 0.01) {
+    vec2 pointGreen = vec2(-1.768, -0.0);
+    if(distance(p, pointGreen) < 0.0005) {
         return vec4(0, 1, 0, 1);
     }
-    vec2 pointYellow = vec2(0.37, 0.2);
-    if(distance(p, pointYellow) < 0.01) {
+    vec2 pointYellow = vec2(-1.751, -0.0);
+    if(distance(p, pointYellow) < 0.0005) {
         return vec4(1, 1, 0, 1);
     }
     vec2 pointLightBlue = vec2(-0.5, 0.57);
@@ -78,7 +78,10 @@ vec4 computeColor(vec2 p) {
 	
     // do some soft coloring based on distance
 	d = clamp( pow(4.0*d,0.04), 0.0, 1.0 );
-
+    if(d >= 0.7) {
+        return vec4( d, d, d, 0.0 );
+    }
+    
     return vec4( d, d, d, 1.0 );
 }
 
