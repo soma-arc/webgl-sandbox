@@ -20,8 +20,6 @@ vec2 Rand2n(vec2 co, float sampleIndex) {
 
 vec4 computeColor(vec2 p) {
     p *= 4.2;
-    p.y += -.18;
-    p.x += -0.;
     float m2 = 0.0;
     vec2 dz = vec2(0.0);
 

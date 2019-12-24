@@ -44,7 +44,7 @@ vec3 cCenter = vec3(0, -1, sqrt(10. - 4. * sqrt(6.)));
 vec3 cRight = vec3(3, -2, 2. * sqrt(2.));
 vec3 cLeft = vec3(-3, -2, 2. * sqrt(2.));
 const int ITERATIONS = 50;
-int maxIterations = 20;
+int maxIterations = 5;
 int IIS(vec2 pos){
     bool fund = true;
     int invCount = 1;
@@ -70,6 +70,12 @@ int IIS(vec2 pos){
         } 
         
         if(fund){
+            if (pos.x > 1. ||
+                pos.x < -1. ||
+                pos.y > 1.4 ||
+                pos.y < -0.9) {
+                return 0;
+            }
         	return invCount;
         }
     }
@@ -94,7 +100,7 @@ vec4 computeColor(vec2 position) {
     }
 
     int count = IIS(position);
-    if(count == 0) return vec4(vec3(0), alpha);
+    if(count == 0) return vec4(vec3(0), 0.);
     return vec4(hsv2rgb(vec3(float(count) * 0.01, 1., 1.)), alpha);
 }
 

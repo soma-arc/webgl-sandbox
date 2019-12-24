@@ -20,11 +20,12 @@ vec2 Rand2n(vec2 co, float sampleIndex) {
 
 vec4 computeColor(vec2 p) {
     p *= 4.5;
+
     float m2 = 0.0;
     vec2 dz = vec2(0.0);
 
     int j = 0;
-    vec2 c = vec2(-1.751, -0.0);
+    vec2 c = vec2(-1.758, -.014);
 
     vec2 z = p;
     for(int i = 0; i < 360; i++){

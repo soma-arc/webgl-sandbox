@@ -30,23 +30,23 @@ vec4 computeColor(vec2 p) {
     vec2 dz = vec2(0.0);
 
     vec2 pointRed = vec2(-1.750, 0.01);
-    if(distance(p, pointRed) < 0.0005) {
+    if(distance(p, pointRed) < 0.0002) {
         return vec4(1, 0, 0, 1);
     }
     vec2 pointBlue = vec2(-1.778, -0.0);
-    if(distance(p, pointBlue) < 0.0005) {
+    if(distance(p, pointBlue) < 0.0002) {
         return vec4(0, 0, 1, 1);
     }
     vec2 pointGreen = vec2(-1.768, -0.0);
-    if(distance(p, pointGreen) < 0.0005) {
+    if(distance(p, pointGreen) < 0.0002) {
         return vec4(0, 1, 0, 1);
     }
     vec2 pointYellow = vec2(-1.751, -0.0);
-    if(distance(p, pointYellow) < 0.0005) {
+    if(distance(p, pointYellow) < 0.0002) {
         return vec4(1, 1, 0, 1);
     }
-    vec2 pointLightBlue = vec2(-0.5, 0.57);
-    if(distance(p, pointLightBlue) < 0.01) {
+    vec2 pointLightBlue = vec2(-1.758, -.014);
+    if(distance(p, pointLightBlue) < 0.0002) {
         return vec4(0, 1, 1, 1);
     }
     vec2 pointPink = vec2(-1.15, .25);

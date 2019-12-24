@@ -77,7 +77,7 @@ int IIS(vec2 pos){
             fund = false;
         }
 
-                if(distance(pos, redCircleRight.xy) < redCircleRight.z ){
+        if(distance(pos, redCircleRight.xy) < redCircleRight.z ){
             return ++invCount;
         } else if (distance(pos, redCircleLeft.xy) < redCircleLeft.z) {
             return ++invCount;
@@ -123,7 +123,8 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 13.2;
+    position *= 11.2;
+    position += 2.0;
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);
 	outColor = vec4(mix(computeColor(position), texCol, u_textureWeight));
