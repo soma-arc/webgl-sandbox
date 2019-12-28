@@ -68,7 +68,7 @@ bool revCircle2 = false;
 const int ITERATIONS = 50;
 float colCount = 0.;
 bool outer = false;
-int maxIterations = 30;
+int maxIterations = 4;
 
 int IIS(vec2 pos){
     colCount = 0.;
@@ -184,11 +184,11 @@ void main(){
     float ratio = u_resolution.x / u_resolution.y / 2.0;
     float x = 0.57735;
 
-    float bendX = 0.5;// 0. + 1. * abs(sin(iTime));;//PI / 6.;
+    float bendX = 0.3;// 0. + 1. * abs(sin(iTime));;//PI / 6.;
     mat3 xRotate = mat3(1, 0, 0,
                         0, cos(bendX), -sin(bendX),
                         0, sin(bendX), cos(bendX));
-    float bendY = 0.;//PI/6.5;//-abs(0.8 * sin(iTime));
+    float bendY = 0.0;//PI/6.5;//-abs(0.8 * sin(iTime));
     mat3 yRotate = mat3(cos(bendY), 0, sin(bendY),
                          0, 1, 0,
                          -sin(bendY), 0, cos(bendY));
@@ -212,13 +212,23 @@ void main(){
 
     vec2 position = ( (gl_FragCoord.xy + rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
 
-    position *= ( 7.);
+    position *= ( 3.6);
     //position += vec2(cos(iTime), 0.3 * sin(iTime));
 
     int d = IIS(position);
 
     vec4 col;
-    if(d == 0){
+
+    // if (abs(distance(position, cPos1) - cr1) < 0.01) {
+    //     col = vec4(0, 0, 0, 1);
+    // }else if (abs(distance(position, -cPos1) - cr1) < 0.01){
+    //     col = vec4(0, 0, 0, 1);
+    // } else if (abs(distance(position, cPos2) - cr2) < 0.01){
+    //     col = vec4(0, 0, 0, 1);
+    // } else if (abs(distance(position, -cPos2) - cr2) < 0.01){
+    //     col = vec4(0, 0, 0, 1);
+    // } else
+        if(d == 0){
         col = vec4(0.,0.,0., 0.);
     }else{
         float cIni = 0.19;

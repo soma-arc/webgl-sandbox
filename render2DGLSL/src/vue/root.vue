@@ -16,9 +16,9 @@ export default {
     props: ['canvasHandler'],
     data: function() {
         return {
-            productRenderWidth: 1024,
-            productRenderHeight: 1024,
-            productRenderMaxSamples: 1,
+            productRenderWidth: 3500,
+            productRenderHeight: 3500,
+            productRenderMaxSamples: 50,
         }
     },
     methods: {

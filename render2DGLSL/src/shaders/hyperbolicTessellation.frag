@@ -41,7 +41,7 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 }
 
 const int ITERATIONS = 50;
-int maxIterations = 4;
+int maxIterations = 0;
 int IIS(vec2 pos){
     if(length(pos) > 1.) return 0;
 
@@ -78,8 +78,23 @@ int IIS(vec2 pos){
 
 vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
-    int d = IIS(position);
     float alpha = 1.0;
+    
+    if (abs(distance(position, c1.xy) - c1.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } else if (abs(distance(position, c2.xy) - c2.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } else if (abs(distance(position, c3.xy) - c3.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } else if (abs(distance(position, c4.xy) - c4.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } 
+    
+    int d = IIS(position);
     if(d == 0){
         col = vec3(0.,0.,0.);
         alpha = 0.0;
@@ -98,9 +113,9 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 2.2;
+    position *= 6.5;
 
-    computeColor(position);
+    //computeColor(position);
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);
 	outColor = vec4(mix(computeColor(position), texCol, u_textureWeight));

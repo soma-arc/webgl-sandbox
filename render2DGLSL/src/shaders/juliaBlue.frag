@@ -18,22 +18,39 @@ vec2 Rand2n(vec2 co, float sampleIndex) {
                 fract(cos(dot(seed.xy ,vec2(4.898,7.23))) * 23421.631));
 }
 
+
+vec3 hsv(float h, float s, float v){
+    vec4 t = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(vec3(h) + t.xyz) * 6.0 - vec3(t.w));
+    return v * mix(vec3(t.x), clamp(p - vec3(t.x), 0.0, 1.0), s);
+}
+
+
 vec4 computeColor(vec2 p) {
-    p *= 4.;
+    p *= 3.2;
     p.y += -.18;
     p.x += -0.;
     float m2 = 0.0;
     vec2 dz = vec2(0.0);
 
     int j = 0;
-    vec2 c = vec2(-0.05, 0.72);
+    vec2 c = vec2(0.338, - 0.0884);
 
     vec2 z = p;
     for(int i = 0; i < 360; i++){
         j++;
-        if(length(z) > 2.0){return vec4(1, 1, 1, 0);}
+        if(length(z) > 2.0){
+            //break;
+            return vec4(1, 1, 1, 0);
+        }
         z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
     }
+    // float h = abs(mod(float(j), 360.0) / 360.0);
+    // vec3 rgb = hsv(0., h, h);
+    // float alpha = 1.0;
+    // float w = (12./float(j));
+    // if (w > .8) alpha = 0.0;
+    // return vec4(w,w,w, alpha);
     float d = 0.;
     return vec4( d, d, d, 1.0 );
 }

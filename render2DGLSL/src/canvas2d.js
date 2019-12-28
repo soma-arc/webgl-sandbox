@@ -2,6 +2,7 @@ import Canvas from './canvas.js';
 import { GetWebGL2Context, CreateSquareVbo, AttachShader,
          LinkProgram, CreateRGBATextures, CreateRGBAImageTexture2D,
          CreateFloatTextures } from './glUtils';
+import TextureHandler from './textureHandler.js';
 
 const RENDER_VERTEX = require('./shaders/render.vert');
 const RENDER_FRAGMENT = require('./shaders/render.frag');
@@ -11,8 +12,8 @@ const SIMPLE_FRAG = require('./shaders/simple.frag');
 const HYPERBOLIC_FRAG = require('./shaders/hyperbolicTessellation.frag');
 const KLEIN_FRAG = require('./shaders/kleinTessellation.frag');
 const MANDEL_FRAG = require('./shaders/mandelbrot.frag');
-const MANDEL_ZOOM_FRAG = require('./shaders/mandelbrotZoomPoints.frag');
-const JULIA1_FRAG = require('./shaders/juliaGreenZoom.frag');
+const MANDEL_ZOOM_FRAG = require('./shaders/mandelbrotZoom.frag');
+const JULIA1_FRAG = require('./shaders/juliaBlue.frag');
 const AHARA_ARAKI_FRAG = require('./shaders/aharaAraki.frag');
 const APOLLONIUS_FRAG = require('./shaders/apollonius.frag');
 const CIRCLE_FRAG = require('./shaders/circle.frag')
@@ -76,12 +77,14 @@ export default class Canvas2D extends Canvas {
         this.renderProgram = this.gl.createProgram();
         AttachShader(this.gl, RENDER_FLIPPED_VERTEX,
                      this.renderProgram, this.gl.VERTEX_SHADER);
-        //AttachShader(this.gl, KLEIN_FRAG,
-        //this.renderProgram, this.gl.FRAGMENT_SHADER);
+        //AttachShader(this.gl, HYPERBOLIC_FRAG,
+        //             this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, MANDEL_FRAG,
         //              this.renderProgram, this.gl.FRAGMENT_SHADER);
+        //AttachShader(this.gl, KLEIN_FRAG,
+//                      this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, MANDEL_ZOOM_FRAG,
-        //            this.renderProgram, this.gl.FRAGMENT_SHADER);
+         //           this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, JULIA1_FRAG,
         //           this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, AHARA_ARAKI_FRAG,
@@ -109,6 +112,9 @@ export default class Canvas2D extends Canvas {
 
     getRenderUniformLocations(program) {
         this.uniLocations = [];
+        const textureIndex = 0;
+        this.imageTextures = TextureHandler.createTextures(this.gl, textureIndex);
+        TextureHandler.setUniformLocation(this.gl, this.uniLocations, this.renderProgram);
         this.uniLocations.push(this.gl.getUniformLocation(program,
                                                           'u_accTexture'));
         //this.uniLocations.push(this.gl.getUniformLocation(program,
@@ -123,9 +129,16 @@ export default class Canvas2D extends Canvas {
 
     setRenderUniformValues(width, height, texture) {
         let i = 0;
-        this.gl.activeTexture(this.gl.TEXTURE0);
+        let textureIndex = 0;
+        for (const tex of this.imageTextures) {
+            this.gl.activeTexture(this.gl.TEXTURE0 + textureIndex);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+            this.gl.uniform1i(this.uniLocations[i++], textureIndex);
+            textureIndex++;
+        }
+        this.gl.activeTexture(this.gl.TEXTURE0 + textureIndex);
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        this.gl.uniform1i(this.uniLocations[i++], 0);
+        this.gl.uniform1i(this.uniLocations[i++], textureIndex);
         // this.gl.activeTexture(this.gl.TEXTURE1);
         // this.gl.bindTexture(this.gl.TEXTURE_2D, this.brdfLUT);
         // this.gl.uniform1i(this.uniLocations[i++], 1);
