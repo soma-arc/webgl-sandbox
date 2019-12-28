@@ -7,6 +7,9 @@ uniform float u_textureWeight;
 uniform float u_numSamples;
 uniform vec2 u_resolution;
 uniform int u_maxIterations;
+
+uniform sampler2D u_imageTexture;
+
 out vec4 outColor;
 
 
@@ -68,9 +71,9 @@ bool revCircle2 = false;
 const int ITERATIONS = 50;
 float colCount = 0.;
 bool outer = false;
-int maxIterations = 4;
+int maxIterations = 6;
 
-int IIS(vec2 pos){
+int IIS(vec2 pos, out vec3 tex){
     colCount = 0.;
     //if(length(pos) > 1.) return 0;
 
@@ -145,6 +148,12 @@ int IIS(vec2 pos){
         }
         
         if(fund){
+            vec2 texTranslate = vec2(0.5, 0.6);
+            vec2 texSize = vec2(1.15);
+            tex = texture(u_imageTexture, abs( vec2( 1.) - (pos + texTranslate) / texSize)).rgb;
+            if(mod(float(invCount), 2.) == 0.){
+                tex.yz *= 0.5;
+            }
             if(length(pos) > 1.5){
                 outer = true;
             	return 0;
@@ -212,10 +221,11 @@ void main(){
 
     vec2 position = ( (gl_FragCoord.xy + rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
 
-    position *= ( 3.6);
+    position *= ( 3.7);
     //position += vec2(cos(iTime), 0.3 * sin(iTime));
 
-    int d = IIS(position);
+    vec3 tex;
+    int d = IIS(position, tex);
 
     vec4 col;
 
@@ -228,23 +238,30 @@ void main(){
     // } else if (abs(distance(position, -cPos2) - cr2) < 0.01){
     //     col = vec4(0, 0, 0, 1);
     // } else
-        if(d == 0){
+    if(d == 0){
         col = vec4(0.,0.,0., 0.);
     }else{
-        float cIni = 0.19;
-        if(mod(float(d), 2.) == 0.){
-            if(outer){
-                col = vec4(hsv2rgb(vec3(cIni, 1., 1.)), 1.0);
-            }else{
-                col = vec4(hsv2rgb(vec3(cIni, 1., 1.)), 1.0);
-            }
-        }else{
-            if(outer){
-                col = vec4(hsv2rgb(vec3(cIni + 0.5 + 0.5, 1., 1.)), 1.0);
-            }else{
-                col = vec4(hsv2rgb(vec3(cIni + 0.5, 1., 1.)), 1.0);
-            }
-        }
+        col = vec4(tex, 1.0);
+        // if(mod(float(d), 2.) == 0.){
+        //     col += hsv2rgb(vec3(0., 1., 1.));
+        // }else{
+        //     col += hsv2rgb(vec3(0.5, 1., 1.));
+        // }
+        
+        // float cIni = 0.19;
+        // if(mod(float(d), 2.) == 0.){
+        //     if(outer){
+        //         col = vec4(hsv2rgb(vec3(cIni, 1., 1.)), 1.0);
+        //     }else{
+        //         col = vec4(hsv2rgb(vec3(cIni, 1., 1.)), 1.0);
+        //     }
+        // }else{
+        //     if(outer){
+        //         col = vec4(hsv2rgb(vec3(cIni + 0.5 + 0.5, 1., 1.)), 1.0);
+        //     }else{
+        //         col = vec4(hsv2rgb(vec3(cIni + 0.5, 1., 1.)), 1.0);
+        //     }
+        // }
     }
 
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);
