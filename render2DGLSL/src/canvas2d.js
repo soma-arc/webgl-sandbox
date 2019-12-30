@@ -17,6 +17,7 @@ const JULIA1_FRAG = require('./shaders/juliaBlue.frag');
 const AHARA_ARAKI_FRAG = require('./shaders/aharaAraki.frag');
 const APOLLONIUS_FRAG = require('./shaders/apollonius.frag');
 const CIRCLE_FRAG = require('./shaders/circle.frag')
+const TRANSPARENT_FRAG = require('./shaders/transparent.frag');
 
 export default class Canvas2D extends Canvas {
     constructor(canvasId) {
@@ -89,10 +90,12 @@ export default class Canvas2D extends Canvas {
         //this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, AHARA_ARAKI_FRAG,
         //             this.renderProgram, this.gl.FRAGMENT_SHADER);
-        AttachShader(this.gl, APOLLONIUS_FRAG,
-        this.renderProgram, this.gl.FRAGMENT_SHADER);
+        //AttachShader(this.gl, APOLLONIUS_FRAG,
+        //             this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, CIRCLE_FRAG,
         //             this.renderProgram, this.gl.FRAGMENT_SHADER);
+        AttachShader(this.gl, TRANSPARENT_FRAG,
+                     this.renderProgram, this.gl.FRAGMENT_SHADER);
         LinkProgram(this.gl, this.renderProgram);
         this.renderVAttrib = this.gl.getAttribLocation(this.renderProgram,
                                                        'a_vertex');
