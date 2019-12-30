@@ -11,6 +11,13 @@ uniform sampler2D u_imageTexture;
 
 out vec4 outColor;
 
+const float DISPLAY_GAMMA_COEFF = 2.2;
+vec4 degamma(vec4 rgba) {
+    return vec4((min(pow(rgba.r, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.g, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.b, DISPLAY_GAMMA_COEFF), 1.)),
+                rgba.a);
+}
 
 // from Syntopia http://blog.hvidtfeldts.net/index.php/2015/01/path-tracing-3d-fractals/
 vec2 Rand2n(vec2 co, float sampleIndex) {
@@ -42,7 +49,7 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 }
 
 const int ITERATIONS = 50;
-int maxIterations = 30;
+int maxIterations = 0;
 int IIS(vec2 pos, out vec3 tex){
     if(length(pos) > 1.) return 0;
 
@@ -72,7 +79,7 @@ int IIS(vec2 pos, out vec3 tex){
         if(fund){
             vec2 texTranslate = vec2(0.5, 0.5);
             vec2 texSize = vec2(0.9);
-            tex = texture(u_imageTexture, abs( vec2( 1.) - (pos + texTranslate) / texSize)).rgb;
+            tex = degamma(texture(u_imageTexture, abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
             if(mod(float(invCount), 2.) == 0.){
                 tex.yz *= 0.5;
             }
@@ -87,19 +94,19 @@ vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
     float alpha = 1.0;
     
-    // if (abs(distance(position, c1.xy) - c1.z) < 0.01) {
-    //     col = vec3(0);
-    //     return vec4(col, alpha);
-    // } else if (abs(distance(position, c2.xy) - c2.z) < 0.01) {
-    //     col = vec3(0);
-    //     return vec4(col, alpha);
-    // } else if (abs(distance(position, c3.xy) - c3.z) < 0.01) {
-    //     col = vec3(0);
-    //     return vec4(col, alpha);
-    // } else if (abs(distance(position, c4.xy) - c4.z) < 0.01) {
-    //     col = vec3(0);
-    //     return vec4(col, alpha);
-    // } 
+    if (abs(distance(position, c1.xy) - c1.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } else if (abs(distance(position, c2.xy) - c2.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } else if (abs(distance(position, c3.xy) - c3.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } else if (abs(distance(position, c4.xy) - c4.z) < 0.01) {
+        col = vec3(0);
+        return vec4(col, alpha);
+    } 
     vec3 tex;
     int d = IIS(position, tex);
     if(d == 0){
@@ -121,7 +128,7 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 2.2;
+    position *= 6.5;
 
     //computeColor(position);
     

@@ -24,17 +24,25 @@ vec3 hsv2rgb(vec3 c)
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+const float DISPLAY_GAMMA_COEFF = 2.2;
+vec4 degamma(vec4 rgba) {
+    return vec4((min(pow(rgba.r, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.g, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.b, DISPLAY_GAMMA_COEFF), 1.)),
+                rgba.a);
+}
+
 void main() {
     vec4 col;
     float scale = 2.5;
-    float maxiter = 256.;
+    float maxiter = 7.;
     float bailout = exp(PI/2.);
     float zx =  scale*(2.* gl_FragCoord.x / u_resolution.y-u_resolution.x/u_resolution.y);
     float zy =  scale*(2.* gl_FragCoord.y / u_resolution.y-1.);
-    float uvx = 0.0;//0.3;
-    float uvy = 0.0;//0.4;
-    //float uvx = 0.;
-    //float uvy = 0.;
+    float uvx = 0.3;
+    float uvy = 0.4;
+    //uvx = 0.;
+    //uvy = 0.;
     // if (mouseX==0 && mouseY==0) {
     //     uvx = 0.25f;
     //     uvy = 0f;
@@ -62,7 +70,7 @@ void main() {
         float theta = mod((mod((atan2(zy, zx) + 2. * PI ), (2. * PI)) / 2. / PI * 360.), 360.)/360.;
         float R = mod(((0.5f*log(zx*zx+zy*zy) -  PI) / PI * 360.), 360.)/ 360.;
         col = vec4(hsv2rgb(vec3(theta/360., 1., 1.)), 1.);
-        col = texture(u_imageTexture, vec2(1. - theta, 1. - R));
+        col = degamma(texture(u_imageTexture, vec2(1. - theta,  R)));
     }
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);

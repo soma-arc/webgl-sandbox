@@ -12,6 +12,13 @@ uniform sampler2D u_imageTexture;
 
 out vec4 outColor;
 
+const float DISPLAY_GAMMA_COEFF = 2.2;
+vec4 degamma(vec4 rgba) {
+    return vec4((min(pow(rgba.r, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.g, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.b, DISPLAY_GAMMA_COEFF), 1.)),
+                rgba.a);
+}
 
 // from Syntopia http://blog.hvidtfeldts.net/index.php/2015/01/path-tracing-3d-fractals/
 vec2 rand2n(vec2 co, float sampleIndex) {
@@ -71,7 +78,7 @@ bool revCircle2 = false;
 const int ITERATIONS = 50;
 float colCount = 0.;
 bool outer = false;
-int maxIterations = 6;
+int maxIterations = 0;
 
 int IIS(vec2 pos, out vec3 tex){
     colCount = 0.;
@@ -150,7 +157,7 @@ int IIS(vec2 pos, out vec3 tex){
         if(fund){
             vec2 texTranslate = vec2(0.5, 0.6);
             vec2 texSize = vec2(1.15);
-            tex = texture(u_imageTexture, abs( vec2( 1.) - (pos + texTranslate) / texSize)).rgb;
+            tex = degamma(texture(u_imageTexture, abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
             if(mod(float(invCount), 2.) == 0.){
                 tex.yz *= 0.5;
             }
@@ -221,7 +228,7 @@ void main(){
 
     vec2 position = ( (gl_FragCoord.xy + rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
 
-    position *= ( 3.7);
+    position *= ( 12.7);
     //position += vec2(cos(iTime), 0.3 * sin(iTime));
 
     vec3 tex;
@@ -229,15 +236,15 @@ void main(){
 
     vec4 col;
 
-    // if (abs(distance(position, cPos1) - cr1) < 0.01) {
-    //     col = vec4(0, 0, 0, 1);
-    // }else if (abs(distance(position, -cPos1) - cr1) < 0.01){
-    //     col = vec4(0, 0, 0, 1);
-    // } else if (abs(distance(position, cPos2) - cr2) < 0.01){
-    //     col = vec4(0, 0, 0, 1);
-    // } else if (abs(distance(position, -cPos2) - cr2) < 0.01){
-    //     col = vec4(0, 0, 0, 1);
-    // } else
+    if (abs(distance(position, cPos1) - cr1) < 0.01) {
+        col = vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, -cPos1) - cr1) < 0.01){
+        col = vec4(0, 0, 0, 1);
+    } else if (abs(distance(position, cPos2) - cr2) < 0.01){
+        col = vec4(0, 0, 0, 1);
+    } else if (abs(distance(position, -cPos2) - cr2) < 0.01){
+        col = vec4(0, 0, 0, 1);
+    } else
     if(d == 0){
         col = vec4(0.,0.,0., 0.);
     }else{

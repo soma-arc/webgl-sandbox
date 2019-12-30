@@ -82,17 +82,17 @@ export default class Canvas2D extends Canvas {
         //AttachShader(this.gl, MANDEL_FRAG,
         //              this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, KLEIN_FRAG,
-//                      this.renderProgram, this.gl.FRAGMENT_SHADER);
+        //             this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, MANDEL_ZOOM_FRAG,
          //           this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, JULIA1_FRAG,
-        //           this.renderProgram, this.gl.FRAGMENT_SHADER);
+        //this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, AHARA_ARAKI_FRAG,
         //             this.renderProgram, this.gl.FRAGMENT_SHADER);
-        //AttachShader(this.gl, APOLLONIUS_FRAG,
+        AttachShader(this.gl, APOLLONIUS_FRAG,
+        this.renderProgram, this.gl.FRAGMENT_SHADER);
+        //AttachShader(this.gl, CIRCLE_FRAG,
         //             this.renderProgram, this.gl.FRAGMENT_SHADER);
-        AttachShader(this.gl, CIRCLE_FRAG,
-                     this.renderProgram, this.gl.FRAGMENT_SHADER);
         LinkProgram(this.gl, this.renderProgram);
         this.renderVAttrib = this.gl.getAttribLocation(this.renderProgram,
                                                        'a_vertex');

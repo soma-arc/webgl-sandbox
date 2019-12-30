@@ -1,12 +1,41 @@
 import Circle from './circle.js';
 import Complex from './complex.js';
+const DEFAULT_IMAGE_URLS = { 'tile': require('./img/tile.jpg') };
+let img;
 
 window.addEventListener('load', () => {
+    const promises = [];
+    const TextureData = {};
+    for (const imgName of Object.keys(DEFAULT_IMAGE_URLS)) {
+        const imgUrl = DEFAULT_IMAGE_URLS[imgName];
+        img = new Image();
+        const p = new Promise(function(resolve, reject) {
+            img.addEventListener('load', () => {
+                resolve();
+            });
+        });
+        promises.push(p);
+        img.src = imgUrl;
+        TextureData[imgName] = { 'imageData': img,
+                                 'index': 0 };
+    }
+    const texLoad = promises;
+    Promise.all(texLoad).then(function(){
+        console.log('loaded')
+        main();
+    });
+});
+
+function setCircle(ctx, c) {
+    ctx.arc(c.center.re-0.15, c.center.im + 0.8, c.r, 0, 2.0 * Math.PI);
+}
+
+function main() {
     const x = 5.0; // triangleEdgeLength
     const outer = Circle.fromPoints(new Complex(x/4, Math.sqrt(3)/4 * x),
                                     new Complex(3 / 4 * x, Math.sqrt(3)/4 * x),
                                     new Complex(x * 0.5, 0));
-    
+    console.log(outer);
     const cCenter = new Circle(x * 0.5, Math.sqrt(3.) * x / 6.0,
                                x * (2.0 * Math.sqrt(3.0) - 3.)/6.0);
     cCenter.genId = 0;
@@ -35,7 +64,7 @@ window.addEventListener('load', () => {
     const circlesList = [[c1, c2]];
     const genCircles = [cCenter, cRight, cLeft, cTop];
 
-    const maxLevel = 5;
+    const maxLevel = 0;
     for(let level = 0; level < maxLevel; level++) {
         circlesList.push([]);
         for(const c of circlesList[level]) {
@@ -51,6 +80,10 @@ window.addEventListener('load', () => {
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    
+    // const pattern = ctx.createPattern(img, 'repeat');
+    // ctx.fillStyle = pattern;
+    // ctx.fillRect(10, 10, 1000, 1000);
     ctx.translate(canvas.width / 2 - cCenter.re, canvas.height / 2 - cCenter.im);
     ctx.scale(800, 800);
 
@@ -74,30 +107,32 @@ window.addEventListener('load', () => {
     // ------
 
     // -----
-    for(const list of circlesList) {
-        for(const c of list) {
-            ctx.beginPath () ;
+    for (const list of circlesList) {
+        for (const c of list) {
+            ctx.beginPath();
             setCircle(ctx, c);
-            ctx.fillStyle = "rgb(0,0,255)" ;
+            ctx.save();
+            ctx.fillStyle = "rgb(0,0,255)";
             ctx.closePath();
             ctx.fill();
+            ctx.restore();
         }
     }
     
-    for(const c of circlesList[circlesList.length-2]) {
-        ctx.beginPath() ;
+    for(const c of circlesList[circlesList.length - 2]) {
+        ctx.beginPath();
         setCircle(ctx, c);
-        ctx.fillStyle = "rgb(255,0,0)" ;
+        ctx.fillStyle = "rgb(255,0,0)";
         ctx.closePath();
-        ctx.fill() ;
+        ctx.fill();
     }
 
 
     for(const c of [originCr, originCl]) {
+        ctx.fillStyle = "rgb(0, 0, 255)";
         ctx.beginPath();
         setCircle(ctx, c);
         ctx.lineWidth = 0.005;
-        ctx.fillStyle = "rgb(0, 0, 255)";
         ctx.closePath();
         ctx.fill();
     }
@@ -105,16 +140,11 @@ window.addEventListener('load', () => {
     for(const c of genCircles) {
         ctx.beginPath();
         setCircle(ctx, c);
-        ctx.lineWidth = 0.005;
+        ctx.lineWidth = 0.02;
         ctx.strokeStyle = "rgb(0,255,0)";
         ctx.closePath();
         ctx.stroke();
     }
-    
+    //
     console.log('Done');
-});
-
-function setCircle(ctx, c) {
-    ctx.arc( c.center.re-0.15, c.center.im + 0.8, c.r, 0, 2. * Math.PI);
 }
-
