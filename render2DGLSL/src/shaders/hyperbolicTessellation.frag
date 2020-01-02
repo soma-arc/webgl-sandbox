@@ -7,7 +7,7 @@ uniform float u_textureWeight;
 uniform float u_numSamples;
 uniform vec2 u_resolution;
 uniform int u_maxIterations;
-uniform sampler2D u_imageTexture;
+uniform sampler2D u_imageTexture3;
 
 out vec4 outColor;
 
@@ -49,7 +49,7 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 }
 
 const int ITERATIONS = 50;
-int maxIterations = 0;
+int maxIterations = 100;
 int IIS(vec2 pos, out vec3 tex){
     if(length(pos) > 1.) return 0;
 
@@ -77,9 +77,9 @@ int IIS(vec2 pos, out vec3 tex){
         } 
         
         if(fund){
-            vec2 texTranslate = vec2(0.5, 0.5);
+            vec2 texTranslate = vec2(0.44, 0.47);
             vec2 texSize = vec2(0.9);
-            tex = degamma(texture(u_imageTexture, abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
+            tex = degamma(texture(u_imageTexture3, abs( vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             if(mod(float(invCount), 2.) == 0.){
                 tex.yz *= 0.5;
             }
@@ -128,7 +128,8 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 6.5;
+    //position *= 6.5;
+    position *= 3.;
 
     //computeColor(position);
     

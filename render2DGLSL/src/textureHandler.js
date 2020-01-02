@@ -1,7 +1,9 @@
 import { CreateRGBATextures } from './glUtils.js';
 
 const TextureData = {};
-const DEFAULT_IMAGE_URLS = { 'tile': require('./img/tile.jpg') };
+const DEFAULT_IMAGE_URLS = { 'tile': require('./img/tile.jpg'),
+                             'tile1': require('./img/stone.jpg'),
+                             'tile_a': require('./img/tile_a.jpg')};
 
 export default class TextureHandler {
     static init() {
@@ -49,11 +51,17 @@ export default class TextureHandler {
     }
 
     static setUniformLocation(gl, uniLocation, program, index) {
-        let i = 0;
-        for (const img of Object.values(TextureData)) {
-            uniLocation.push(gl.getUniformLocation(program,
-                                                   `u_imageTexture`));
-            i++;
-        }
+        // let i = 0;
+        // for (const img of Object.values(TextureData)) {
+        //     uniLocation.push(gl.getUniformLocation(program,
+        //                                            `u_imageTexture`));
+        //     i++;
+        // }
+        uniLocation.push(gl.getUniformLocation(program,
+                                               `u_imageTexture`));
+        uniLocation.push(gl.getUniformLocation(program,
+                                               `u_imageTexture2`));
+        uniLocation.push(gl.getUniformLocation(program,
+                                               `u_imageTexture3`));
     }
 }

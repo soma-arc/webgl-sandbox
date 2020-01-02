@@ -8,6 +8,8 @@ uniform float u_numSamples;
 uniform vec2 u_resolution;
 uniform int u_maxIterations;
 uniform sampler2D u_imageTexture;
+uniform sampler2D u_imageTexture2;
+uniform sampler2D u_imageTexture3;
 
 out vec4 outColor;
 
@@ -60,7 +62,7 @@ vec3 redCircleRight = vec3(3.1698729810778064, 1.8301270189221934, 0.66987298107
 vec3 redCircleLeft = vec3(1.8301270189221932, 1.8301270189221934, 0.6698729810778066 );
 
 const int ITERATIONS = 1000;
-int maxIterations = 500;
+int maxIterations = 800;
 int IIS(vec2 pos, out vec3 tex){
     bool fund = true;
     int invCount = 1;
@@ -71,19 +73,18 @@ int IIS(vec2 pos, out vec3 tex){
         if(distance(pos, redCircleRight.xy) < redCircleRight.z){
             vec2 texTranslate = -redCircleRight.xy + vec2(1.2, 0.77);
             vec2 texSize = vec2(2);
-            tex = degamma(texture(u_imageTexture,
+            tex = degamma(texture(u_imageTexture2,
                                   abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
             if(abs(distance(pos, redCircleRight.xy) - redCircleRight.z) < 0.06) {
                 tex *= 0.5;
             }
-            tex.gb *= 0.5;
 
             return ++invCount;
         } else if (distance(pos, redCircleLeft.xy) < redCircleLeft.z) {
-            vec2 texTranslate = -redCircleLeft.xy + vec2(1.2, 0.77);
+            vec2 texTranslate = -redCircleLeft.xy + vec2(0.99, 1.);
             vec2 texSize = vec2(2);
-            tex = degamma(texture(u_imageTexture,
-                                  abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
+            tex = degamma(texture(u_imageTexture3,
+                                  abs( vec2(0, 1.) - (pos + texTranslate) / texSize))).rgb;
             if(abs(distance(pos, redCircleLeft.xy) - redCircleLeft.z) < 0.06) {
                 tex *= 0.5;
             }
@@ -120,19 +121,19 @@ vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
     float alpha = 1.0;
 
-    if (abs(distance(position, cTop.xy) - cTop.z) < 0.02) {
-        //col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.02){
-        col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.02){
-        col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.02){
-        col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else
+    // if (abs(distance(position, cTop.xy) - cTop.z) < 0.02) {
+    //     //col = vec3(0, 1, 0);
+    //     return vec4(0, 1, 0, 1);
+    // }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.02){
+    //     col = vec3(0, 1, 0);
+    //     return vec4(0, 1, 0, 1);
+    // }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.02){
+    //     col = vec3(0, 1, 0);
+    //     return vec4(0, 1, 0, 1);
+    // }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.02){
+    //     col = vec3(0, 1, 0);
+    //     return vec4(0, 1, 0, 1);
+    // }else
     // if (abs(distance(position, cOuter.xy) - cOuter.z) < 0.005){
     //      col = vec3(160./255., 122./255., 64./255.);
     //      return vec4(col, 1);
@@ -156,8 +157,8 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    //position *= 3.2;
-    position *= 6.5;
+    position *= 3.2;
+    //position *= 6.5;
     position += vec2(2.5, 1.5);
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);
