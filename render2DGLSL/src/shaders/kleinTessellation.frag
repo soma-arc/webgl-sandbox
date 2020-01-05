@@ -155,7 +155,7 @@ int IIS(vec2 pos, out vec3 tex){
         }
         
         if(fund){
-            vec2 texTranslate = vec2(0.55, 0.58);
+            vec2 texTranslate = vec2(0.57, 0.58);
             vec2 texSize = vec2(1.15);
             tex = degamma(texture(u_imageTexture3, abs(  vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             if(mod(float(invCount), 2.) == 0.){

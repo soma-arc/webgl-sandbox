@@ -62,7 +62,7 @@ vec3 redCircleRight = vec3(3.1698729810778064, 1.8301270189221934, 0.66987298107
 vec3 redCircleLeft = vec3(1.8301270189221932, 1.8301270189221934, 0.6698729810778066 );
 
 const int ITERATIONS = 1000;
-int maxIterations = 800;
+int maxIterations = 0;
 int IIS(vec2 pos, out vec3 tex){
     bool fund = true;
     int invCount = 1;
@@ -121,23 +121,23 @@ vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
     float alpha = 1.0;
 
-    // if (abs(distance(position, cTop.xy) - cTop.z) < 0.02) {
-    //     //col = vec3(0, 1, 0);
-    //     return vec4(0, 1, 0, 1);
-    // }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.02){
-    //     col = vec3(0, 1, 0);
-    //     return vec4(0, 1, 0, 1);
-    // }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.02){
-    //     col = vec3(0, 1, 0);
-    //     return vec4(0, 1, 0, 1);
-    // }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.02){
-    //     col = vec3(0, 1, 0);
-    //     return vec4(0, 1, 0, 1);
-    // }else
+    if (abs(distance(position, cTop.xy) - cTop.z) < 0.02) {
+        //col = vec3(0, 1, 0);
+        return vec4(0, 1, 0, 1);
+    }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.02){
+        col = vec3(0, 1, 0);
+        return vec4(0, 1, 0, 1);
+    }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.02){
+        col = vec3(0, 1, 0);
+        return vec4(0, 1, 0, 1);
+    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.02){
+        col = vec3(0, 1, 0);
+        return vec4(0, 1, 0, 1);
+    //} else
     // if (abs(distance(position, cOuter.xy) - cOuter.z) < 0.005){
     //      col = vec3(160./255., 122./255., 64./255.);
     //      return vec4(col, 1);
-    //  }else
+     }else
         if (abs(distance(position, redCircleRight.xy) - redCircleRight.z) < 0.01){
         col = vec3(1, 0, 0);
     }else if (abs(distance(position, redCircleLeft.xy) - redCircleLeft.z) < 0.01){
@@ -157,8 +157,9 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 3.2;
-    //position *= 6.5;
+//    position *= 3.2;
+//    position *= 6.5;
+    position *= 11.;
     position += vec2(2.5, 1.5);
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);

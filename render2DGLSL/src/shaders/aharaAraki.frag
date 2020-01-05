@@ -7,9 +7,21 @@ uniform float u_textureWeight;
 uniform float u_numSamples;
 uniform vec2 u_resolution;
 uniform int u_maxIterations;
+uniform sampler2D u_imageTexture2;
+uniform sampler2D u_imageTexture3;
 
 out vec4 outColor;
 
+vec3 originCRight = vec3(.5, -0.3, 0.58);
+vec3 originCLeft = vec3(-.5, -0.3, 0.58);
+
+const float DISPLAY_GAMMA_COEFF = 2.2;
+vec4 degamma(vec4 rgba) {
+    return vec4((min(pow(rgba.r, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.g, DISPLAY_GAMMA_COEFF), 1.)),
+                (min(pow(rgba.b, DISPLAY_GAMMA_COEFF), 1.)),
+                rgba.a);
+}
 
 // from Syntopia http://blog.hvidtfeldts.net/index.php/2015/01/path-tracing-3d-fractals/
 vec2 Rand2n(vec2 co, float sampleIndex) {
@@ -43,14 +55,37 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 vec3 cCenter = vec3(0, -1, sqrt(10. - 4. * sqrt(6.)));
 vec3 cRight = vec3(3, -2, 2. * sqrt(2.));
 vec3 cLeft = vec3(-3, -2, 2. * sqrt(2.));
-const int ITERATIONS = 50;
-int maxIterations = 5;
-int IIS(vec2 pos){
+const int ITERATIONS = 1000;
+int maxIterations = 0;
+int IIS(vec2 pos, out vec3 tex){
     bool fund = true;
     int invCount = 1;
 	for(int i = 0 ; i < ITERATIONS ; i++){
         if(i > maxIterations) return 0;
         fund = true;
+
+        if(distance(pos, originCLeft.xy) < originCLeft.z ){
+            invCount++;            
+            vec2 texTranslate = vec2(1.2, 1.4);
+            vec2 texSize = vec2(2.2);
+            tex = degamma(texture(u_imageTexture3,
+                                  abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
+            // if(abs(distance(pos, originCLeft.xy) - originCLeft.z) < 0.06) {
+            //     tex *= 0.5;
+            // }
+            return invCount;
+        } else if (distance(pos, originCRight.xy) < originCRight.z) {
+            invCount++;
+            vec2 texTranslate = vec2(1., 1.4);
+            vec2 texSize = vec2(2.2);
+            tex = degamma(texture(u_imageTexture2,
+                                  abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
+            // if(abs(distance(pos, originCRight.xy) - originCRight.z) < 0.06) {
+            //     tex *= 0.5;
+            // }
+            return invCount;
+        }
+        
         if(pos.y > 0.){
             pos.y *= -1.;
             invCount++;
@@ -76,6 +111,21 @@ int IIS(vec2 pos){
                 pos.y < -0.9) {
                 return 0;
             }
+
+            vec2 texTranslate = vec2(1.1, 1.4);
+            vec2 texSize = vec2(2.2);
+            tex = degamma(texture(u_imageTexture3,
+                                  abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
+            if(mod(float(invCount), 2.) == 0.){
+                tex.yz *= 0.5;
+            }
+            // float strokeWeight = 0.02 ;
+            // if(abs(pos.y) < strokeWeight ||
+            //    distance(pos, cCenter.xy) - cCenter.z < strokeWeight ||
+            //    distance(pos, cRight.xy) - cRight.z < strokeWeight ||
+            //    distance(pos, cLeft.xy) - cLeft.z < strokeWeight){
+            //     tex *= 0.5;
+            // }
         	return invCount;
         }
     }
@@ -87,21 +137,35 @@ vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
     float alpha = 1.0;
 
-    if (abs(position.y) < 0.01) {
+    float strokeWeight = 0.01;
+    if (abs(position.y) < strokeWeight) {
         col = vec3(0);
-    }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.01){
+        return vec4(col, alpha);        
+     }else if (abs(distance(position, originCRight.xy) - originCRight.z) < strokeWeight){
+         col = vec3(0, 0, 0);
+         return vec4(col, alpha);
+     }else if (abs(distance(position, originCLeft.xy) - originCLeft.z) < strokeWeight){
+         col = vec3(0, 0, 0);
+         return vec4(col, alpha);
+    }else if (abs(distance(position, cCenter.xy) - cCenter.z) < strokeWeight){
         col = vec3(0);
-    }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.01){
+        return vec4(col, alpha);
+    }else if (abs(distance(position, cRight.xy) - cRight.z) < strokeWeight){
         col = vec3(0);
-    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.01){
+        return vec4(col, alpha);
+    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < strokeWeight){
         col = vec3(0);
+        return vec4(col, alpha);
     } else {
         col = vec3(1);
     }
 
-    int count = IIS(position);
+    vec3 tex;
+    int count = IIS(position, tex);
     if(count == 0) return vec4(vec3(0), 0.);
-    return vec4(hsv2rgb(vec3(float(count) * 0.01, 1., 1.)), alpha);
+    //if(count == 2) return vec4(vec3(0, 0.7, 0), 1.);
+    //return vec4(hsv2rgb(vec3(float(count) * 0.01, 1., 1.)), alpha);
+    return vec4(tex, 1.0);
 }
 
 void main() {
@@ -109,8 +173,8 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 5.2;
-
+    //position *= 5.2;
+    position *= 13.5;
     computeColor(position);
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);

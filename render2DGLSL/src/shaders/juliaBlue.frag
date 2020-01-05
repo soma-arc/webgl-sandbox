@@ -34,9 +34,9 @@ vec4 computeColor(vec2 p) {
     vec2 dz = vec2(0.0);
 
     int j = 0;
-    vec2 c = vec2(0.2316, 0.5313);
+    //vec2 c = vec2(0.2316, 0.5313);
     //vec2 c = vec2(-0.2008, 0.672);
-
+    //vec2 c = vec2(-0.05, 0.7);
     vec2 z = p;
     float smoothColor = exp(-length(z));
     int maxIter = 660;

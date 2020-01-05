@@ -49,7 +49,7 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 }
 
 const int ITERATIONS = 50;
-int maxIterations = 100;
+int maxIterations = 0;
 int IIS(vec2 pos, out vec3 tex){
     if(length(pos) > 1.) return 0;
 
@@ -128,8 +128,8 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    //position *= 6.5;
-    position *= 3.;
+    position *= 6.5;
+    //position *= 3.;
 
     //computeColor(position);
     

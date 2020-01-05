@@ -42,7 +42,7 @@ void main() {
     if(col.r < 0.001 && col.g < 0.001 && col.b < 0.001) {
 //        col.rgb = 1.;
     }
-    col.w = 1. - col.r / 4.;
+    col.w = 1. - col.r / 4.35;
     if(col.w < 0.8) col.w = 0.;
     
 //    vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
