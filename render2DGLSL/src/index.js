@@ -32,16 +32,27 @@ window.addEventListener('load', () => {
 
         renderLoop();
 
-        const x = 5.0;
-        const c1r = new Complex(3 / 4 * x, Math.sqrt(3) / 4 * x);
-        const c2r = new Complex((4 - Math.sqrt(3)) / 4 * x, x / 4);
-        const c3r = new Complex(x / 2, Math.sqrt(3) / 6 * x + x * (2.0 * Math.sqrt(3.0) - 3.0) / 6.0);
+        const c1o = new Complex(0, 0);
+        const c2o = new Complex(-0.2, -0.4);
+        const c3o = new Complex(0.2, -0.4);
+        const co = Circle.fromPoints(c1o, c2o, c3o);
+        console.log(`${co.center.re}, ${co.center.im}, ${co.r} `);
+        // const x = 5.0;
+        // const c1r = new Complex(3 / 4 * x, Math.sqrt(3) / 4 * x);
+        // const c2r = new Complex((4 - Math.sqrt(3)) / 4 * x, x / 4);
+        // const c3r = new Complex(x / 2, Math.sqrt(3) / 6 * x + x * (2.0 * Math.sqrt(3.0) - 3.0) / 6.0);
+        const c1r = new Complex(1, 0);
+        const c2r = new Complex(0.2, -0.4);
+        const c3r = new Complex(0, -1);
         const cr = Circle.fromPoints(c1r, c2r, c3r);
         console.log(`${cr.center.re}, ${cr.center.im}, ${cr.r} `);
 
-        const c1l = new Complex(1 / 4 * x, Math.sqrt(3) / 4 * x);
-        const c2l = new Complex(Math.sqrt(3) / 4 * x, x / 4);
-        const c3l = new Complex(x / 2, Math.sqrt(3) / 6 * x + x * (2.0 * Math.sqrt(3.0) - 3.0) / 6.0);
+        // const c1l = new Complex(1 / 4 * x, Math.sqrt(3) / 4 * x);
+        // const c2l = new Complex(Math.sqrt(3) / 4 * x, x / 4);
+        // const c3l = new Complex(x / 2, Math.sqrt(3) / 6 * x + x * (2.0 * Math.sqrt(3.0) - 3.0) / 6.0);
+        const c1l = new Complex(-1, 0);
+        const c2l = new Complex(-0.2, -0.4);
+        const c3l = new Complex(0, -1);
         const cl = Circle.fromPoints(c1l, c2l, c3l);
         console.log(`${cl.center.re}, ${cl.center.im}, ${cl.r} `);
     });
