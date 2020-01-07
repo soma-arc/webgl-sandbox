@@ -138,6 +138,41 @@ export default class Circle extends Shape {
         return [a1.add(c.center), a2.add(c.center)];
     }
 
+    /**
+     * @param {Complex} p1
+     * @param {Complex} p2
+     * @returns {Circle}
+     */
+    static computeHyperbolicLine(p1, p2) {
+        const p1Inv = Circle.POINCARE_DISK.invertOnPoint(p1);
+        const p2Inv = Circle.POINCARE_DISK.invertOnPoint(p2);
+        const p1OnPoincare = Complex.distance(p1, p1Inv) < 0.00001;
+        const p2OnPoincare = Complex.distance(p2, p2Inv) < 0.00001;
+
+        let c;
+        if (p1OnPoincare && p2OnPoincare) {
+            const center = new Complex((p2.im - p1.im) /
+                                       (p1.re * p2.im - p2.re * p1.im),
+                                       (p1.re - p2.re) /
+                                       (p1.re * p2.im - p2.re * p1.im));
+            c = new Circle(center.re, center.im,
+                           Complex.distance(center, p1));
+        } else if (p1OnPoincare) {
+            c = Circle.fromPoints(p1,
+                                  p2,
+                                  p2Inv);
+        } else if (p2OnPoincare) {
+            c = Circle.fromPoints(p1,
+                                  p2,
+                                  p1Inv);
+        } else {
+            c = Circle.fromPoints(p1,
+                                  p2,
+                                  p1Inv);
+        }
+        return new Circle(c.center.re, c.center.im, c.r);
+    }
+
     static get POINCARE_DISK() {
         return POINCARE_DISK;
     }

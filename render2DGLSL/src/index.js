@@ -55,5 +55,17 @@ window.addEventListener('load', () => {
         const c3l = new Complex(0, -1);
         const cl = Circle.fromPoints(c1l, c2l, c3l);
         console.log(`${cl.center.re}, ${cl.center.im}, ${cl.r} `);
+
+        const P = new Complex(1, 0);
+        const Q = new Complex(-1, 0);
+        const R = new Complex(-1.0 / 3.0, -(2 * Math.sqrt(2)) / 3.0);
+        const S = new Complex(1.0 / 3.0, (-2 * Math.sqrt(2)) / 3.0);
+        const cb = Circle.computeHyperbolicLine(Q, R);
+        const cA = Circle.computeHyperbolicLine(R, S);
+        const cB = Circle.computeHyperbolicLine(S, P);
+
+        console.log(`${cb.center.re}, ${cb.center.im}, ${cb.r} `);
+        console.log(`${cA.center.re}, ${cA.center.im}, ${cA.r} `);
+        console.log(`${cB.center.re}, ${cB.center.im}, ${cB.r} `);
     });
 });

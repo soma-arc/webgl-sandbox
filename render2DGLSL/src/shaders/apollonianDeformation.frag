@@ -45,9 +45,20 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 	return ((pos - circle.xy) * circle.z * circle.z)/(length(pos - circle.xy) * length(pos - circle.xy) ) + circle.xy;
 }
 
-vec3 cCenter = vec3(0, -0.25, 0.25);
-vec3 cRight = vec3(1, -1,  1);
-vec3 cLeft = vec3(-1, -1, 1);
+// Apollonius packing
+// vec3 cLeft = vec3(-1, -1, 1);
+// vec3 cCenter = vec3(0, -0.25, 0.25);
+// vec3 cRight = vec3(1, -1,  1);
+
+// hyperbolic tessellation
+// vec3 cLeft = vec3(-1, -0.7071067811865476, 0.7071067811865476);
+// vec3 cCenter = vec3(0, -1.0606601717798212, 0.3535533905932737);
+// vec3 cRight = vec3(1, -0.7071067811865476, 0.7071067811865476 );
+
+vec3 cLeft = vec3(-1, -0.7071067811865476, 0.7071067811865476);
+vec3 cCenter = vec3(0, -1.0606601717798212, 0.3535533905932737);
+vec3 cRight = vec3(1, -0.7071067811865476, 0.7071067811865476 );
+
 const int ITERATIONS = 1000;
 int maxIterations = 100;
 int IIS(vec2 pos, out vec3 tex){
@@ -98,13 +109,22 @@ int IIS(vec2 pos, out vec3 tex){
         } 
         
         if(fund){
+            // if (pos.x > 1. ||
+            //     pos.x < -1. ||
+            //     pos.y > 1.4 ||
+            //     pos.y < -0.4
+            //     ) {
+            //     return 0;
+            // }
+
             if (pos.x > 1. ||
                 pos.x < -1. ||
-                pos.y > 1.4 ||
-                pos.y < -0.4) {
+                pos.y > 0. ||
+                pos.y < (-2. * sqrt(2.)) / 3.0
+                ) {
                 return 0;
             }
-
+            
             if (pos.x < 0.) {
                 vec2 texTranslate = vec2(-0.1, 1.4);
                 vec2 texSize = vec2(1.5);
