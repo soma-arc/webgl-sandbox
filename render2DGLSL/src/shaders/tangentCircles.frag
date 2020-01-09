@@ -46,15 +46,26 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 }
 
 const float triangleEdgeLength = 5.0;
-vec3 cOuter = vec3(2.5, 1.4433756729740643, 1.4433756729740643);
-vec3 cCenter = vec3(triangleEdgeLength * 0.5, sqrt(3.) * triangleEdgeLength / 6.0,
-                    triangleEdgeLength * (2.0 * sqrt(3.0) - 3.)/6.0);
-vec3 cRight = vec3(triangleEdgeLength, 0, triangleEdgeLength * 0.5);
-vec3 cLeft = vec3(0, 0, triangleEdgeLength * 0.5);
-vec3 cTop = vec3(triangleEdgeLength * 0.5, sqrt(3.) * 0.5 * triangleEdgeLength, triangleEdgeLength * 0.5);
 
-vec3 cInner = vec3(triangleEdgeLength * 0.5, sqrt(3.) * triangleEdgeLength / 6.0,
-                   1.45);
+const float sq = 1. / sqrt(2.);
+// const vec3 c1 = vec3(sq + sq, sq - sq, 1);
+// const vec3 c2 = vec3(sq - sq, sq + sq, 1);
+// const vec3 c3 = vec3(-sq + sq, -sq -sq, 1);
+// const vec3 c4 = vec3(-sq -sq, -sq + sq, 1);
+const vec3 cInner = vec3(0, 0, 1);
+
+const float cos50 = cos(0.8726646259971648);
+const float cos40 = cos(0.6981317007977318);
+const float cos55 = cos(0.9599310885968813);
+const float cos35 = cos(0.6108652381980153);
+// const vec3 c1 = vec3(0, 2. * cos50, 1);
+// const vec3 c2 = vec3(-2. * cos40, 0, 1);
+// const vec3 c3 = vec3(0, -2. * cos50, 1);
+// const vec3 c4 = vec3(2. * cos40, 0, 1);
+const vec3 c1 = vec3(0, 2. * cos55, 1);
+const vec3 c2 = vec3(-2. * cos35, 0, 1);
+const vec3 c3 = vec3(0, -2. * cos55, 1);
+const vec3 c4 = vec3(2. * cos35, 0, 1);
 
 const int ITERATIONS = 10000;
 int maxIterations = 0;
@@ -65,21 +76,21 @@ int IIS(vec2 pos, out vec3 tex){
         if(i > maxIterations) return 0;
         fund = true;
 
-        if(distance(pos, cCenter.xy) < cCenter.z ){
-            pos = circleInvert(pos, cCenter);
+        if(distance(pos, c1.xy) < c1.z ){
+            pos = circleInvert(pos, c1);
             invCount++;
             fund = false;
-        }else if(distance(pos, cRight.xy) < cRight.z ){
-            pos = circleInvert(pos, cRight);
+        }else if(distance(pos, c2.xy) < c2.z ){
+            pos = circleInvert(pos, c2);
             invCount++;
             fund = false;
-        }else if(distance(pos, cLeft.xy) < cLeft.z ){
-            pos = circleInvert(pos, cLeft);
+        }else if(distance(pos, c3.xy) < c3.z ){
+            pos = circleInvert(pos, c3);
             invCount++;
             fund = false;
         }
-        else if(distance(pos, cTop.xy) < cTop.z ){
-            pos = circleInvert(pos, cTop);
+        else if(distance(pos, c4.xy) < c4.z ){
+            pos = circleInvert(pos, c4);
             invCount++;
             fund = false;
         }
@@ -88,35 +99,24 @@ int IIS(vec2 pos, out vec3 tex){
             if (distance(cInner.xy, pos) > cInner.z) {
                 return 0;
             }
-            
-            if (pos.y > cInner.y) {
-                if(pos.x < cInner.x) {
-                    vec2 texTranslate = vec2(-1., -1.2);
-                    vec2 texSize = vec2(1.5);
-                    tex = degamma(texture(u_imageTexture3,
-                                          abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
-                } else {
-                    vec2 texTranslate = vec2(-2.5, -1.2);
-                    vec2 texSize = vec2(1.5);
-                    tex = degamma(texture(u_imageTexture3,
-                                          abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
-                }   
+
+            if (distance(cInner.xy, pos) < cInner.z * 0.5) {
+                //vec2 texTranslate = vec2(0.75, 0.8);
+                //vec2 texSize = vec2(1.5);
+                vec2 texTranslate = vec2(.75, 0.77);
+                vec2 texSize = vec2(1.5);
+                tex = degamma(texture(u_imageTexture3,
+                                      abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             } else {
-                vec2 texTranslate = vec2(-1.8, 1.3);
+                vec2 texTranslate = vec2(0., 0.77);
                 vec2 texSize = vec2(1.5);
                 tex = degamma(texture(u_imageTexture3,
                                       abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             }
+
             if(mod(float(invCount), 2.) == 0.){
                 tex.yz *= 0.5;
             }
-            // float strokeWeight = 0.02 ;
-            // if(abs(pos.y) < strokeWeight ||
-            //    distance(pos, cCenter.xy) - cCenter.z < strokeWeight ||
-            //    distance(pos, cRight.xy) - cRight.z < strokeWeight ||
-            //    distance(pos, cLeft.xy) - cLeft.z < strokeWeight){
-            //     tex *= 0.5;
-            // }
         	return invCount;
         }
     }
@@ -130,24 +130,24 @@ vec4 computeColor(vec2 position) {
 
     float strokeWeight = 0.01;
 
-     if (abs(distance(position, cCenter.xy) - cCenter.z) < strokeWeight){
+     if (abs(distance(position, c1.xy) - c1.z) < strokeWeight){
         col = vec3(0);
         return vec4(col, alpha);
-    }else if (abs(distance(position, cRight.xy) - cRight.z) < strokeWeight){
+    }else if (abs(distance(position, c2.xy) - c2.z) < strokeWeight){
         col = vec3(0);
         return vec4(col, alpha);
-    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < strokeWeight){
+    }else if (abs(distance(position, c3.xy) - c3.z) < strokeWeight){
         col = vec3(0);
         return vec4(col, alpha);
-     }else if (abs(distance(position, cTop.xy) - cTop.z) < strokeWeight){
+     }else if (abs(distance(position, c4.xy) - c4.z) < strokeWeight){
          col = vec3(0);
          return vec4(col, alpha);
-
-     // }else if (abs(distance(position, cInner.xy) - cInner.z) < strokeWeight){
+         
+     }// lse if (abs(distance(position, cInner.xy) - cInner.z) < strokeWeight){
      //     col = vec3(0);
      //     return vec4(col, alpha);
-
-     } else
+     // }
+     else
         {
         col = vec3(1);
     }
@@ -165,9 +165,10 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
+    position *= 5.5;
     //position *= 5.2;
-    position *= 11.;
-    position += vec2(2.5, 1.5);
+    //position *= 11.;
+
     computeColor(position);
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);
