@@ -58,14 +58,22 @@ const float cos50 = cos(0.8726646259971648);
 const float cos40 = cos(0.6981317007977318);
 const float cos55 = cos(0.9599310885968813);
 const float cos35 = cos(0.6108652381980153);
+const float cos60 = 0.5;
+const float cos30 = 0.5 * sqrt(3.);
 // const vec3 c1 = vec3(0, 2. * cos50, 1);
 // const vec3 c2 = vec3(-2. * cos40, 0, 1);
 // const vec3 c3 = vec3(0, -2. * cos50, 1);
 // const vec3 c4 = vec3(2. * cos40, 0, 1);
-const vec3 c1 = vec3(0, 2. * cos55, 1);
-const vec3 c2 = vec3(-2. * cos35, 0, 1);
-const vec3 c3 = vec3(0, -2. * cos55, 1);
-const vec3 c4 = vec3(2. * cos35, 0, 1);
+
+// const vec3 c1 = vec3(0, 2. * cos55, 1);
+// const vec3 c2 = vec3(-2. * cos35, 0, 1);
+// const vec3 c3 = vec3(0, -2. * cos55, 1);
+// const vec3 c4 = vec3(2. * cos35, 0, 1);
+
+const vec3 c1 = vec3(0, 2. * cos60, 1);
+const vec3 c2 = vec3(-2. * cos30, 0, 1);
+const vec3 c3 = vec3(0, -2. * cos60, 1);
+const vec3 c4 = vec3(2. * cos30, 0, 1);
 
 const int ITERATIONS = 10000;
 int maxIterations = 0;
@@ -100,15 +108,15 @@ int IIS(vec2 pos, out vec3 tex){
                 return 0;
             }
 
-            if (distance(cInner.xy, pos) < cInner.z * 0.5) {
+            if (pos.x < 0.) {
                 //vec2 texTranslate = vec2(0.75, 0.8);
                 //vec2 texSize = vec2(1.5);
-                vec2 texTranslate = vec2(.75, 0.77);
+                vec2 texTranslate = vec2(1.35, 0.77);
                 vec2 texSize = vec2(1.5);
                 tex = degamma(texture(u_imageTexture3,
                                       abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             } else {
-                vec2 texTranslate = vec2(0., 0.77);
+                vec2 texTranslate = vec2(0.15, 0.77);
                 vec2 texSize = vec2(1.5);
                 tex = degamma(texture(u_imageTexture3,
                                       abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;

@@ -57,7 +57,7 @@ vec3 cInner = vec3(triangleEdgeLength * 0.5, sqrt(3.) * triangleEdgeLength / 6.0
                    1.45);
 
 const int ITERATIONS = 10000;
-int maxIterations = 0;
+int maxIterations = 1000;
 int IIS(vec2 pos, out vec3 tex){
     bool fund = true;
     int invCount = 1;
@@ -85,26 +85,27 @@ int IIS(vec2 pos, out vec3 tex){
         }
 
         if(fund){
-            if (distance(cInner.xy, pos) > cInner.z) {
+            if (distance(cInner.xy, pos) > cInner.z ||
+                pos.y < 1.35) {
                 return 0;
             }
             
             if (pos.y > cInner.y) {
                 if(pos.x < cInner.x) {
-                    vec2 texTranslate = vec2(-1., -1.2);
+                    vec2 texTranslate = vec2(-1.1, -1.35);
                     vec2 texSize = vec2(1.5);
-                    tex = degamma(texture(u_imageTexture3,
+                    tex = degamma(texture(u_imageTexture2,
                                           abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
                 } else {
-                    vec2 texTranslate = vec2(-2.5, -1.2);
+                    vec2 texTranslate = vec2(-2.5, -1.1);
                     vec2 texSize = vec2(1.5);
-                    tex = degamma(texture(u_imageTexture3,
+                    tex = degamma(texture(u_imageTexture2,
                                           abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
                 }   
             } else {
                 vec2 texTranslate = vec2(-1.8, 1.3);
                 vec2 texSize = vec2(1.5);
-                tex = degamma(texture(u_imageTexture3,
+                tex = degamma(texture(u_imageTexture2,
                                       abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             }
             if(mod(float(invCount), 2.) == 0.){
@@ -165,8 +166,8 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    //position *= 5.2;
-    position *= 11.;
+    position *= 5.2;
+    //position *= 11.;
     position += vec2(2.5, 1.5);
     computeColor(position);
     
