@@ -76,7 +76,7 @@ const vec3 c3 = vec3(0, -2. * cos60, 1);
 const vec3 c4 = vec3(2. * cos30, 0, 1);
 
 const int ITERATIONS = 10000;
-int maxIterations = 0;
+int maxIterations = 1000;
 int IIS(vec2 pos, out vec3 tex){
     bool fund = true;
     int invCount = 1;
@@ -113,7 +113,7 @@ int IIS(vec2 pos, out vec3 tex){
                 //vec2 texSize = vec2(1.5);
                 vec2 texTranslate = vec2(1.35, 0.77);
                 vec2 texSize = vec2(1.5);
-                tex = degamma(texture(u_imageTexture3,
+                tex = degamma(texture(u_imageTexture2,
                                       abs(vec2(0.,1.) - (pos + texTranslate) / texSize))).rgb;
             } else {
                 vec2 texTranslate = vec2(0.15, 0.77);
@@ -173,7 +173,7 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 5.5;
+    position *= 5.6;
     //position *= 5.2;
     //position *= 11.;
 

@@ -2,8 +2,8 @@ import { CreateRGBATextures } from './glUtils.js';
 
 const TextureData = {};
 const DEFAULT_IMAGE_URLS = { 'tile': require('./img/tile_a.jpg'),
-                             'tile1': require('./img/tile.jpg'),
-                             'tile_a': require('./img/tile_a_ss.jpg')};
+                             'tile1': require('./img/tile_a_ss.jpg'),
+                             'tile_a': require('./img/tile_b_ss.jpg')};
 
 export default class TextureHandler {
     static init() {
