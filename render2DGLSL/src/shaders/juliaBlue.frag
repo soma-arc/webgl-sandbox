@@ -18,32 +18,45 @@ vec2 Rand2n(vec2 co, float sampleIndex) {
                 fract(cos(dot(seed.xy ,vec2(4.898,7.23))) * 23421.631));
 }
 
-
 vec3 hsv(float h, float s, float v){
     vec4 t = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(vec3(h) + t.xyz) * 6.0 - vec3(t.w));
     return v * mix(vec3(t.x), clamp(p - vec3(t.x), 0.0, 1.0), s);
 }
 
+vec3 getColorFromPalettes(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
+    return a + b * cos(6.28318 * (c * t + d));
+}
+
+vec3 computeColorWithPalettes(float loopNum, vec3 a, vec3 b, vec3 c, vec3 d) {
+    return getColorFromPalettes((loopNum / 5.),
+                                a, b, c, d);
+}
+
 
 vec4 computeColor(vec2 p) {
     p *= 3.2;
-    p.y += -.18;
-    p.x += -0.;
+    //p *= 1.;
+    //p *= .35;
+    p.y += 0.;
+    p.x += 0.;
     float m2 = 0.0;
     vec2 dz = vec2(0.0);
 
     int j = 0;
     //vec2 c = vec2(0.2316, 0.5313);
     //vec2 c = vec2(-0.2008, 0.672);
-    //vec2 c = vec2(-0.05, 0.7);
+    //vec2 c = vec2(0.0, 0.63);
+    //vec2 c = vec2(0.0, 0.65);
+    //vec2 c = vec2(-0.75, 0.0);
+    vec2 c = vec2(-0.5, 0.57);
     vec2 z = p;
     float smoothColor = exp(-length(z));
     int maxIter = 660;
     for(int i = 0; i < maxIter; i++){
         j++;
         if(length(z) > 2.0){
-            break;
+            //break;
             return vec4(1, 1, 1, 0);
         }
         z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
@@ -53,15 +66,19 @@ vec4 computeColor(vec2 p) {
     // float h = abs(mod(float(j), 360.0) / 360.0);;
     // vec3 rgb = hsv(h, 1.0, h);
     // return vec4(rgb, 1.0);
+    
     float l = log(length(z))/(pow(2., float(j)));
     float h = abs(mod(float(j), 360.0) / 360.0);
-    vec3 rgb = hsv(0., h, h);
+    float angle = atan(z.y, z.x);
+    vec3 rgb = hsv(angle + 0., h, h);
+    rgb = computeColorWithPalettes(angle, vec3(0.8, 0.5, 0.4), vec3(0.2, 0.4, 0.2), vec3(2, 1, 1), vec3(0, 0.25, 0.25));
+    //rgb = computeColorWithPalettes(angle,vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(2, 1, 1), vec3(0.5, 0.2, 0.25));
     float alpha = 1.0;
     float w = (20./float(j));
-    if (w > .5) alpha = 0.0;
-    return vec4(vec3(smoothColor),1.- w);
-    float d = 0.;
-    return vec4( d, d, d, 1.0 );
+    //if (w > .5) alpha = 0.0;
+    return vec4(rgb, 1.);
+    //float d = 0.;
+    //return vec4( rgb, 1.0 );
 }
 
 void main() {
