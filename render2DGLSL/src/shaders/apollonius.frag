@@ -50,6 +50,15 @@ vec2 circleInvert(vec2 pos, vec3 circle){
 	return ((pos - circle.xy) * circle.z * circle.z)/(length(pos - circle.xy) * length(pos - circle.xy) ) + circle.xy;
 }
 
+vec2 circleInv(const vec2 pos, const vec3 circle, inout float dr){
+    vec2 p = pos - circle.xy;
+    float d = (circle.z * circle.z) / dot(p, p);
+    //dr *= circle.w / d;
+    //return (p * circle.w) / d + circle.xy;
+    dr *= d;
+    return p * d + circle.xy;
+}
+
 const float triangleEdgeLength = 5.0;
 vec3 cOuter = vec3(2.5, 1.4433756729740643, 1.4433756729740643);
 vec3 cCenter = vec3(triangleEdgeLength * 0.5, sqrt(3.) * triangleEdgeLength / 6.0,
@@ -62,50 +71,64 @@ vec3 redCircleRight = vec3(3.1698729810778064, 1.8301270189221934, 0.66987298107
 vec3 redCircleLeft = vec3(1.8301270189221932, 1.8301270189221934, 0.6698729810778066 );
 
 const int ITERATIONS = 1000;
-int maxIterations = 0;
+int maxIterations = 6;
 int IIS(vec2 pos, out vec3 tex){
     bool fund = true;
     int invCount = 1;
+    float dr = 1.0;
 	for(int i = 0 ; i < ITERATIONS ; i++){
         if(i > maxIterations) return 0;
         fund = true;
 
         if(distance(pos, redCircleRight.xy) < redCircleRight.z){
-            vec2 texTranslate = -redCircleRight.xy + vec2(1.2, 0.77);
-            vec2 texSize = vec2(2);
-            tex = degamma(texture(u_imageTexture2,
-                                  abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
-            if(abs(distance(pos, redCircleRight.xy) - redCircleRight.z) < 0.06) {
-                tex *= 0.5;
+            // vec2 texTranslate = -redCircleRight.xy + vec2(1.2, 0.77);
+            // vec2 texSize = vec2(2);
+            // tex = degamma(texture(u_imageTexture2,
+            //                       abs( vec2( 1.) - (pos + texTranslate) / texSize))).rgb;
+            // if(abs(distance(pos, redCircleRight.xy) - redCircleRight.z)/dr < 0.06) {
+            //     tex *= 0.5;
+            // }
+
+            float v = 1.;
+            if(abs(distance(pos, redCircleRight.xy) - redCircleRight.z)/dr < 0.03/float(invCount)) {
+                v = 0.5;
             }
+            tex = hsv2rgb(vec3(-0.05 + (float(1) + 1.5) * 0.1 , 1., v));
+
 
             return ++invCount;
         } else if (distance(pos, redCircleLeft.xy) < redCircleLeft.z) {
-            vec2 texTranslate = -redCircleLeft.xy + vec2(0.99, 1.);
-            vec2 texSize = vec2(2);
-            tex = degamma(texture(u_imageTexture3,
-                                  abs( vec2(0, 1.) - (pos + texTranslate) / texSize))).rgb;
-            if(abs(distance(pos, redCircleLeft.xy) - redCircleLeft.z) < 0.06) {
-                tex *= 0.5;
+            // vec2 texTranslate = -redCircleLeft.xy + vec2(0.99, 1.);
+            // vec2 texSize = vec2(2);
+            // tex = degamma(texture(u_imageTexture3,
+            //                       abs( vec2(0, 1.) - (pos + texTranslate) / texSize))).rgb;
+            // if(abs(distance(pos, redCircleLeft.xy) - redCircleLeft.z)/dr < 0.06) {
+            //     tex *= 0.5;
+            // }
+
+            float v = 1.;
+            if(abs(distance(pos, redCircleLeft.xy) - redCircleLeft.z)/dr < 0.03/float(invCount)) {
+                v = 0.5;
             }
+            tex = hsv2rgb(vec3(-0.05 + 0.1  + (float(1) + 1.5) * 0.1 , 1., v));
 
             return ++invCount;
         }
         
         if(distance(pos, cTop.xy) < cTop.z ){
-            pos = circleInvert(pos, cTop);
+            pos = circleInv(pos, cTop, dr);
             invCount++;
             fund = false;
         }else if(distance(pos, cCenter.xy) < cCenter.z ){
-            pos = circleInvert(pos, cCenter);
+            pos = circleInv(pos, cCenter, dr);
             invCount++;
             fund = false;
         }else if(distance(pos, cRight.xy) < cRight.z ){
-            pos = circleInvert(pos, cRight);
+            pos = circleInv(pos, cRight, dr);
             invCount++;
             fund = false;
         }else if(distance(pos, cLeft.xy) < cLeft.z ){
-            pos = circleInvert(pos, cLeft);
+            pos = circleInv(pos, cLeft, dr);
             invCount++;
             fund = false;
         }
@@ -121,30 +144,43 @@ vec4 computeColor(vec2 position) {
     vec3 col = vec3(0);
     float alpha = 1.0;
 
-    if (abs(distance(position, cTop.xy) - cTop.z) < 0.02) {
+    float centerPointRadius = .02;
+    if (abs(distance(position, cTop.xy)) < centerPointRadius) {
+        return vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, cCenter.xy)) < centerPointRadius){
+        return vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, cRight.xy)) < centerPointRadius){
+        return vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, cLeft.xy)) < centerPointRadius){
+        return vec4(0, 0, 0, 1);
+    }
+    
+    if (abs(distance(position, cTop.xy) - cTop.z) < 0.01) {
         //col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.02){
-        col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.02){
-        col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
-    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.02){
-        col = vec3(0, 1, 0);
-        return vec4(0, 1, 0, 1);
+        return vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, cCenter.xy) - cCenter.z) < 0.01){
+        col = vec3(0, 0, 0);
+        return vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, cRight.xy) - cRight.z) < 0.01){
+        col = vec3(0, 0, 0);
+        return vec4(0, 0, 0, 1);
+    }else if (abs(distance(position, cLeft.xy) - cLeft.z) < 0.01){
+        col = vec3(0, 0, 0);
+        return vec4(0, 0, 0, 1);
+    }
     //} else
     // if (abs(distance(position, cOuter.xy) - cOuter.z) < 0.005){
     //      col = vec3(160./255., 122./255., 64./255.);
     //      return vec4(col, 1);
-     }else
-        if (abs(distance(position, redCircleRight.xy) - redCircleRight.z) < 0.01){
-        col = vec3(1, 0, 0);
-    }else if (abs(distance(position, redCircleLeft.xy) - redCircleLeft.z) < 0.01){
-        col = vec3(1, 0, 0);
-    }else {
-        col = vec3(1);
-    }
+    //  }else
+    //     if (abs(distance(position, redCircleRight.xy) - redCircleRight.z) < 0.01){
+    //     col = vec3(1, 0, 0);
+    // }else if (abs(distance(position, redCircleLeft.xy) - redCircleLeft.z) < 0.01){
+    //     col = vec3(1, 0, 0);
+    // }else {
+    //     col = vec3(1);
+    // }
+
     //return vec4(col, alpha);
     vec3 tex;
     int count = IIS(position, tex);
@@ -157,9 +193,9 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-//    position *= 3.2;
-//    position *= 6.5;
-    position *= 11.;
+    position *= 3.2;
+
+    //position *= 11.;
     position += vec2(2.5, 1.5);
     
     vec4 texCol = texture(u_accTexture, gl_FragCoord.xy / u_resolution);

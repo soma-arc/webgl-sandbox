@@ -78,9 +78,9 @@ int IIS(vec2 pos, out vec3 tex){
             // }
 
             float v = 1.;
-            // if(abs(distance(pos, cTop.xy) - cTop.z)/dr < 0.03/float(invCount)) {
-            //     v = 0.5;
-            // }
+            if(abs(distance(pos, cTop.xy) - cTop.z)/dr < 0.03/float(invCount)) {
+                v = 0.5;
+            }
             tex = hsv2rgb(vec3(-0.05 + (float(invCount) + 1.5) * 0.1 , 1., v));
 
             return ++invCount;
