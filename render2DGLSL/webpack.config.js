@@ -62,7 +62,7 @@ module.exports = () => ({
 
     devServer: {
         contentBase: 'docs',
-        port: 3000,
+        port: 8080,
     },
 
     plugins: [
