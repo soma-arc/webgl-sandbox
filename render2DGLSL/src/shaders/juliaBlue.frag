@@ -50,6 +50,7 @@ vec4 computeColor(vec2 p) {
     //vec2 c = vec2(0.0, 0.65);
     //vec2 c = vec2(-0.75, 0.0);
     vec2 c = vec2(-0.5, 0.57);
+    c = vec2(-0.05, 0.72);
     vec2 z = p;
     float smoothColor = exp(-length(z));
     int maxIter = 660;
@@ -71,8 +72,13 @@ vec4 computeColor(vec2 p) {
     float h = abs(mod(float(j), 360.0) / 360.0);
     float angle = atan(z.y, z.x);
     vec3 rgb = hsv(angle + 0., h, h);
-    rgb = computeColorWithPalettes(angle, vec3(0.8, 0.5, 0.4), vec3(0.2, 0.4, 0.2), vec3(2, 1, 1), vec3(0, 0.25, 0.25));
-    //rgb = computeColorWithPalettes(angle,vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(2, 1, 1), vec3(0.5, 0.2, 0.25));
+    //rgb = computeColorWithPalettes(angle, vec3(0.8, 0.5, 0.4), vec3(0.2, 0.4, 0.2), vec3(2, 1, 1), vec3(0, 0.25, 0.25));
+    //rgb = computeColorWithPalettes(angle, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(2.0,1.0,1.0),vec3(0.0,0.25,0.25));
+    rgb = computeColorWithPalettes(angle + 0., vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.67,0.,0.1));
+    //rgb = computeColorWithPalettes(angle + 0.2, vec3(0.6,0.5,0.5),vec3(0.6,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.4,0.10,0.10));
+    //rgb = computeColorWithPalettes(angle + 0.1, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(2.0,1.0,0.0),vec3(0.9,0.20,0.25));
+        
+    //rgb = computeColorWithPalettes(angle,vec3(0.8, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(1, 1, 1), vec3(0.5, 0.2, 0.2));
     float alpha = 1.0;
     float w = (20./float(j));
     //if (w > .5) alpha = 0.0;
