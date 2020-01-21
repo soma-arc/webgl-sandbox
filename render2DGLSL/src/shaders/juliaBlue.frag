@@ -52,6 +52,8 @@ vec4 computeColor(vec2 p) {
     vec2 c = vec2(-0.5, 0.57);
     c = vec2(-0.05, 0.72);
     vec2 z = p;
+    vec2 lz = z;
+    vec2 llz = z;
     float smoothColor = exp(-length(z));
     int maxIter = 660;
     for(int i = 0; i < maxIter; i++){
@@ -62,6 +64,7 @@ vec4 computeColor(vec2 p) {
         }
         z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
         smoothColor += exp(-length(z));
+        llz=lz; lz=z;
     }
     smoothColor = smoothColor / float(maxIter);
     // float h = abs(mod(float(j), 360.0) / 360.0);;
