@@ -63,7 +63,7 @@ vec3 calcColor(float loopNum) {
 }
 
 const int ITERATIONS = 1000;
-int maxIterations = 30;
+int maxIterations = 100;
 bool isPrevHalfPlane = false;
 vec4 prevHalfPlane;
 vec4 currentHalfPlane;
@@ -71,7 +71,7 @@ vec3 prevCircle;
 vec3 currentCircle;
 float prevDr;
 vec2 prevPos;
-int IIS(vec2 pos, out vec2 lastPos){
+int IIS(vec2 pos, out vec3 col){
     bool inFund = true;
     float invNum = 0.;
     float dr = 1.0;
@@ -97,7 +97,7 @@ int IIS(vec2 pos, out vec2 lastPos){
         float dHalfPlane2 = dot(pos, plane2.zw);
         invNum += (dHalfPlane2 < 0.) ? 1. : 0.;
         inFund = (dHalfPlane2 < 0. ) ? false : inFund;
-        if(dHalfPlane1 < 0. ) {
+        if(dHalfPlane2 < 0. ) {
             isPrevHalfPlane = true;
             prevHalfPlane = currentHalfPlane;
             currentHalfPlane = plane2;
@@ -126,43 +126,42 @@ int IIS(vec2 pos, out vec2 lastPos){
             inFund = false;
         }
         
-        if(inFund){
-            lastPos = pos;
-        	return int(invNum);
-        }
+        if(inFund) break;
     }
 
-    vec3 col;
     if(isPrevHalfPlane) {
         col = (invNum > 0. &&
-               abs(dot(pos - currentHalfPlane.xy, currentHalfPlane.zw))  / dr < 0.003) ? calcColor(invNum) : vec3(0);
+               abs(dot(pos - currentHalfPlane.xy, currentHalfPlane.zw))  / dr < 5.) ? calcColor(invNum) : vec3(0.7);
     } else {
         // Use previous position to avoid artifacts.
         // When pos is at the center of the circle,
         // the jacobian of the inversion becomes infinity.
         col = (invNum > 0. &&
-               abs(distance(prevPos, currentCircle.xy) - currentCircle.z)  / prevDr < 0.003) ? calcColor(invNum) : vec3(0);
+               abs(distance(prevPos, currentCircle.xy) - currentCircle.z)  / prevDr < 5.) ? calcColor(invNum) : vec3(0.7);
     }
     
-    lastPos = pos;
+    if (pos.x>=350. && pos.x<=350.+300.*xx/(300.+xx) &&
+        pos.y>=640. && pos.y<=650.+zz) {
+        col = vec3(1);
+    }
+    if(pos.y <= 350. ) {
+        col = vec3(1);
+    }
 	return 0;
 }
 
 vec4 computeColor(vec2 position) {
-    vec3 col = vec3(0);
-    float alpha = 1.0;
-
-    vec2 lastPos;
-    int count = IIS(position, lastPos);
-    vec3 tex;
-    if(lastPos.y <= 350. ) {
-        return vec4(vec3(1), 1.);
-    }
-    if (lastPos.x>=350. && lastPos.x<=350.+300.*xx/(300.+xx) && lastPos.y>=640. && lastPos.y<=650.+zz) {
-        return vec4(vec3(1), 1.);
-    }
-    tex = hsv2rgb(vec3(0.05 * (float(count)), 1, 1));
-    return vec4(tex, alpha);
+    vec3 col;
+    int count = IIS(position, col);
+    //vec3 tex;
+    // if(lastPos.y <= 350. ) {
+    //     return vec4(vec3(1), 1.);
+    // }
+    // if (lastPos.x>=350. && lastPos.x<=350.+300.*xx/(300.+xx) && lastPos.y>=640. && lastPos.y<=650.+zz) {
+    //     return vec4(vec3(1), 1.);
+    // }
+    //tex = hsv2rgb(vec3(0.05 * (float(count)), 1, 1));
+    return vec4(col, 1);
 }
 
 void main() {
@@ -170,7 +169,7 @@ void main() {
     vec3 col;
     
     vec2 position = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, u_numSamples)) / u_resolution.yy ) - vec2(ratio, 0.5);
-    position *= 2000.;
+    position *= 1500.;
     position.y *= -1.;
     //position *= 11.;
     position += vec2(300, 500);
