@@ -23,6 +23,7 @@ const CIRCLE_TILES_FRAG = require('./shaders/circleTiles.frag');
 const TANGENT_CIRCLES_FRAG = require('./shaders/tangentCircles.frag');
 const ROSARY_FRAG = require('./shaders/rosary.frag');
 const INV_MASKIT_FRAG = require('./shaders/invMaskit.frag');
+const IIS_HOLE_FRAG = require('./shaders/IIShole.frag');
 
 export default class Canvas2D extends Canvas {
     constructor(canvasId) {
@@ -109,7 +110,9 @@ export default class Canvas2D extends Canvas {
         //             this.renderProgram, this.gl.FRAGMENT_SHADER);
         //AttachShader(this.gl, ROSARY_FRAG,
         //this.renderProgram, this.gl.FRAGMENT_SHADER);
-        AttachShader(this.gl, INV_MASKIT_FRAG,
+        // AttachShader(this.gl, INV_MASKIT_FRAG,
+        //              this.renderProgram, this.gl.FRAGMENT_SHADER);
+        AttachShader(this.gl, IIS_HOLE_FRAG,
                      this.renderProgram, this.gl.FRAGMENT_SHADER);
         LinkProgram(this.gl, this.renderProgram);
         this.renderVAttrib = this.gl.getAttribLocation(this.renderProgram,
