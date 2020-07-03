@@ -21,7 +21,7 @@ export default class Canvas {
         this.canvas.addEventListener('dblclick', this.boundDblClickLisntener);
         this.canvas.addEventListener('keydown', this.boundKeydown);
         this.canvas.addEventListener('keyup', this.boundKeyup);
-        this.canvas.addEventListener('contextmenu', event => event.preventDefault());
+        //this.canvas.addEventListener('contextmenu', event => event.preventDefault());
 
         this.renderCallback = this.render.bind(this);
     }

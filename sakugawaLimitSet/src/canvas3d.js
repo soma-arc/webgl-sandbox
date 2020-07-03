@@ -39,11 +39,13 @@ export default class Canvas3D extends Canvas {
         this.vPositionAttrib = this.gl.getAttribLocation(this.renderProgram,
                                                          'vPosition');
         this.gl.enableVertexAttribArray(this.vPositionAttrib);
-
+        this.vColorAttrib = this.gl.getAttribLocation(this.renderProgram, 'vColor');
+        this.gl.enableVertexAttribArray(this.vColorAttrib);
+        
         this.z0 = -1;
-        this.thetaA = 0;
+        this.thetaA = 0.3;
         this.thetaB = Math.PI / 2;// + 0.1;
-        this.maxLevel = 15;
+        this.maxLevel = 20;
         this.threshold = 0.001;
 
         this.orbitStartX = 0;
@@ -111,14 +113,14 @@ export default class Canvas3D extends Canvas {
             this.camera.phi = prevThetaPhi.y - (this.mouseState.prevPosition.y - mouse.y) * 0.01;
             this.camera.update();
             this.render();
-        } else if (this.mouseState.button === Canvas.MOUSE_BUTTON_RIGHT) {
-            const d = mouse.sub(this.mouseState.prevPosition);
-            const [xVec, yVec] = this.camera.getFocalXYVector(this.canvas.width,
-                                                              this.canvas.height);
-            this.camera.target = this.camera.prevTarget.add(xVec.scale(-d.x).add(yVec.scale(-d.y)));
-            this.camera.update();
-            this.render();
-        }
+        }//  else if (this.mouseState.button === Canvas.MOUSE_BUTTON_RIGHT) {
+        //     const d = mouse.sub(this.mouseState.prevPosition);
+        //     const [xVec, yVec] = this.camera.getFocalXYVector(this.canvas.width,
+        //                                                       this.canvas.height);
+        //     this.camera.target = this.camera.prevTarget.add(xVec.scale(-d.x).add(yVec.scale(-d.y)));
+        //     this.camera.update();
+        //     this.render();
+        // }
     }
 
     calcLimitSet() {
@@ -127,10 +129,13 @@ export default class Canvas3D extends Canvas {
         console.log('search');
         this.dfs.search();
         console.log('Done');
-
+        
         this.calcOrbit();
         this.pointsVbo = CreateStaticVbo(this.gl, this.dfs.points);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.pointsVbo);
+
+        this.colorsVbo = CreateStaticVbo(this.gl, this.dfs.colors);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorsVbo);
     }
 
     keydownListener(event) {
@@ -183,7 +188,7 @@ export default class Canvas3D extends Canvas {
     render() {
         const gl = this.gl;
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(1.0, 1.0, 1.0, 1.0);
         gl.clearDepth(1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -207,6 +212,9 @@ export default class Canvas3D extends Canvas {
         gl.uniformMatrix4fv(mvpLocation, false, mvpM.m.elem);
         gl.vertexAttribPointer(this.vPositionAttrib, attStride, this.gl.FLOAT, false, 0, 0);
 
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorsVbo);
+        gl.vertexAttribPointer(this.vColorAttrib, attStride, this.gl.FLOAT, false, 0, 0);
+        
         gl.drawArrays(gl.LINE_STRIP, 0, this.orbits.length/3);
         gl.flush();
     }

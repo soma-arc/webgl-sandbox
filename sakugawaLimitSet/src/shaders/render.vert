@@ -3,11 +3,11 @@ precision mediump float;
 
 uniform mat4 u_mvpMatrix;
 in vec3 vPosition;
-//in vec4 color;
-out vec4 vColor;
+in vec3 vColor;
+out vec4 outColor;
 
 void main() {
-  vColor = vec4(1);
+    outColor = vec4(vColor, 1);
 
   gl_Position = u_mvpMatrix * vec4(vPosition, 1.0);
 }

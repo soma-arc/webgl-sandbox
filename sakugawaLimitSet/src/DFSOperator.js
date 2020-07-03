@@ -24,6 +24,7 @@ export default class DFSOperator {
         this.init();
 
         this.points = [];
+        this.colors = [];
     }
 
     init(){
@@ -176,6 +177,28 @@ export default class DFSOperator {
                              z[2].re, z[2].i, z[2].j,
                              z[3].re, z[3].i, z[3].j,
                              z[4].re, z[4].i, z[4].j);
+            if(this.tags[1] == 1) {
+                this.colors.push(1, 0, 0,
+                                 1, 0, 0,
+                                 1, 0, 0,
+                                 1, 0, 0);
+            } else if (this.tags[1] == 2) {
+                this.colors.push(0, 1, 0,
+                                 0, 1, 0,
+                                 0, 1, 0,
+                                 0, 1, 0);
+            } else if (this.tags[1] == 3) {
+                this.colors.push(1, 0, 1,
+                                 1, 0, 1,
+                                 1, 0, 1,
+                                 1, 0, 1);
+            } else if (this.tags[1] == 4) {
+                this.colors.push(0, 0, 1,
+                                 0, 0, 1,
+                                 0, 0, 1,
+                                 0, 0, 1);
+            }
+        
 			return true;
 		}else{
 			return false;
