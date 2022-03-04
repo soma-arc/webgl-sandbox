@@ -69,19 +69,35 @@ export default class Canvas2D extends Canvas {
         this.gl.uniform1f(this.uniLocations[i++], (new Date().getTime() - this.startTime)/1000 );
     }
 
+    setUniformValuesWithTime(t) {
+        let i = 0;
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.videoTexture);
+        this.gl.uniform1i(this.uniLocations[i++], 0);
+        this.gl.uniform2f(this.uniLocations[i++], this.canvas.width, this.canvas.height);
+        this.gl.uniform2f(this.uniLocations[i++], this.videoResolution[0], this.videoResolution[1]);
+        this.gl.uniform1f(this.uniLocations[i++], t);
+    }
+
     render() {
         this.setUniformValues();
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.useProgram(this.renderProgram);
-        //this.gl.activeTexture(this.gl.TEXTURE0);
-        //this.gl.bindTexture(this.gl.TEXTURE_2D, textures[0]);
-        //const tex = this.gl.getUniformLocation(this.renderProgram, 'u_texture');
-        //this.gl.uniform1i(tex, textures[0]);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(this.renderVAttrib, 2,
                                     this.gl.FLOAT, false, 0, 0);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         this.gl.flush();
-        console.log('render');
+    }
+
+    renderWithTime(t) {
+        this.setUniformValuesWithTime(t);
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        this.gl.useProgram(this.renderProgram);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.vertexAttribPointer(this.renderVAttrib, 2,
+                                    this.gl.FLOAT, false, 0, 0);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        this.gl.flush();
     }
 }

@@ -57,8 +57,8 @@ bool IIS(vec2 pos, out vec3 col){
     bool fund = true;
     float invCount = 0.;
     for(int i = 0 ; i < ITERATIONS ; i++){
-      vec2 texPos = -vec2(0.8, 0.4);
-      vec2 size = u_textureResolution / 750.;
+      vec2 texPos = -vec2(.81, 0.42);
+      vec2 size = u_textureResolution / 1150.;
       vec2 uv = (pos - texPos) / size;
       vec4 texColor = vec4(0, 0, 0, 1);
       if(0. < uv.x && uv.x < 1. &&
@@ -138,8 +138,10 @@ void main() {
   zoom -= mix(0., 2.289, (scene(t, start + 20., 15.)));
   translate.y -= mix(0., .717,(scene(t, start + 20., 15.)));
   translate.x -= mix(0., .697,(scene(t, start + 20., 15.)));
+  vec2 coord = gl_FragCoord.xy;
+  coord.y = u_resolution.y - gl_FragCoord.y;
   for(float i = 0.; i < numSamples; i++) {
-    vec2 pos = ( (gl_FragCoord.xy + Rand2n(gl_FragCoord.xy, i)) / u_resolution.yy ) - vec2(ratio, 0.5);
+    vec2 pos = ( (coord + Rand2n(coord, i)) / u_resolution.yy ) - vec2(ratio, 0.5);
     pos *= 2.3 - zoom;
     pos += translate;
     vec3 col;

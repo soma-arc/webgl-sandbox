@@ -6,14 +6,9 @@ window.addEventListener('load', () => {
 
     const loadButton = document.getElementById('button');
     const video = document.createElement('video');
-    //const video = document.getElementById('video');
-    video.addEventListener('canplay', ()=>{
-        video.play();
-    });
-    video.addEventListener('ended', () => {
-	video.play();
-    });
+
     let loaded = false;
+
     loadButton.addEventListener('click', () => {
         const reader = new FileReader();
         reader.addEventListener('load', () => {
@@ -38,9 +33,38 @@ window.addEventListener('load', () => {
         canvas.render();
         requestAnimationFrame(renderLoop);
     }
-    renderLoop();
+    //renderLoop();
+
+    let index = 0;
+    let t = 0;
+    const fps = 30;
+    const step = 1.0/fps;
+    const duration = 40.0;
+    function renderLoopSave() {
+        if (t < duration) {
+            canvas.updateVideo(video);
+            canvas.renderWithTime(t);
+            const n = index.toString().padStart(4, '0');
+            canvas.saveImage(canvas.gl,
+                             canvas.canvas.width,
+                             canvas.canvas.height,
+                             `kyu190a_${n}`);
+        }
+        index++;
+        t += step;
+        requestAnimationFrame(renderLoopSave);
+    }
+    let renderFirst = true;
+    video.addEventListener('canplay', ()=>{
+        loaded = true;
+        video.play();
+        if(renderFirst) {
+            renderLoopSave();
+            renderFirst = false;
+        }
+    });
+
+    video.addEventListener('ended', () => {
+        video.play();
+    });
 });
-
-function loadVideo() {
-
-}
