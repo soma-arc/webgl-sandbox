@@ -37,22 +37,24 @@ window.addEventListener('load', () => {
 
     let index = 0;
     let t = 0;
-    const fps = 30;
+    const fps = 24;
     const step = 1.0/fps;
     const duration = 40.0;
     function renderLoopSave() {
         if (t < duration) {
             canvas.updateVideo(video);
+            video.currentTime = (video.currentTime + 1/60) % video.duration;
             canvas.renderWithTime(t);
-            const n = index.toString().padStart(4, '0');
+            const n = index.toString();//.padStart(4, '0');
             canvas.saveImage(canvas.gl,
                              canvas.canvas.width,
                              canvas.canvas.height,
-                             `kyu190a_${n}`);
+                             `${n}`);
         }
         index++;
         t += step;
-        requestAnimationFrame(renderLoopSave);
+        //requestAnimationFrame(renderLoopSave);
+        window.setTimeout(renderLoopSave, 100);
     }
     let renderFirst = true;
     video.addEventListener('canplay', ()=>{
