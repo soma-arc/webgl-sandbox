@@ -4,9 +4,13 @@ import Point3 from './geometry/point3.js';
 import Vec3 from './geometry/vector3.js';
 import Transform from './geometry/transform.js';
 import Canvas from './canvas.js';
+import Shader from './shader.js';
 
 const RENDER_FRAG = require('./shaders/render.frag');
 const RENDER_VERT = require('./shaders/render.vert');
+
+const DEPTH_FRAG = require('./shaders/depth.frag');
+const DEPTH_VERT = require('./shaders/depth.vert');
 
 export default class Canvas3D extends Canvas {
     constructor(canvasId) {
@@ -27,45 +31,44 @@ export default class Canvas3D extends Canvas {
         this.canvas = document.getElementById(this.canvasId);
         this.canvasRatio = this.canvas.width / this.canvas.height / 2;
         this.gl = GetWebGL2Context(this.canvas);
+        const gl = this.gl;
+        gl.enable(gl.DEPTH_TEST);
+        this.renderShader = new Shader(gl, RENDER_VERT, RENDER_FRAG);
+        this.depthShader = new Shader(gl, DEPTH_VERT, DEPTH_FRAG);
 
-        this.renderProgram = this.gl.createProgram();
-        AttachShader(this.gl, RENDER_VERT,
-                     this.renderProgram, this.gl.VERTEX_SHADER);
-        AttachShader(this.gl, RENDER_FRAG,
-                     this.renderProgram, this.gl.FRAGMENT_SHADER);
-        LinkProgram(this.gl, this.renderProgram);
+        const depthMapFBO = gl.createFramebuffer();
+        const depthMap = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, depthMap);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT,
+                      this.canvas.width, this.canvas.height,
+                      0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        this.getUniformLocations();
-
+        gl.bindFramebuffer(gl.FRAMEBUFFER, depthMapFBO);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT,
+                                gl.TEXTURE_2D, depthMap, 0);
+        gl.drawBuffers([gl.NONE]);
+        gl.readBuffer(gl.NONE);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
-
-
-    getUniformLocations() {
-
-    }
-
-    setUniformValues() {
-    }
-
 
     render() {
         const gl = this.gl;
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        gl.useProgram(this.renderProgram);
+        this.renderShader.use();
 
         gl.clearColor(0.1, 0.1, 0.1, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         const projection = Transform.perspective(60, 0.1, 1000);
         const view = Transform.lookAt(this.cameraPos, this.cameraTarget,
                                       new Vec3(0, 1, 0));
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.renderProgram, 'projection'),
-                            false, projection.m.elem);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.renderProgram, 'view'),
-                            false, view.m.elem);
-        gl.uniform3f(gl.getUniformLocation(this.renderProgram, 'lightPos'),
-                     false, this.lightPos.x, this.lightPos.y, this.lightPos.z);
-        gl.uniform3f(gl.getUniformLocation(this.renderProgram, 'viewPos'),
-                     false, this.cameraPos.x, this.cameraPos.y, this.cameraPos.z);
+        this.renderShader.uniformMatrix4fv('projection', projection.m.elem);
+        this.renderShader.uniformMatrix4fv('view', view.m.elem);
+        this.renderShader.uniform3f('lightPos', this.lightPos.x, this.lightPos.y, this.lightPos.z);
+        this.renderShader.uniform3f('viewPos', this.cameraPos.x, this.cameraPos.y, this.cameraPos.z);
         this.renderScene(this.gl);
         
     }
@@ -73,31 +76,27 @@ export default class Canvas3D extends Canvas {
     renderScene(gl) {
         // floor
         let model = Transform.IDENTITY;
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.renderProgram, 'model'),
-                            false, model.m.elem);
-        //this.renderPlane(gl);
+        this.renderShader.uniformMatrix4fv('model', model.m.elem);
+        this.renderPlane(gl);
 
         //cubes
         model = Transform.IDENTITY;
         model = model.mult(Transform.translate(0.0, 1.5, 0.0));
         model = model.mult(Transform.scale(0.5, 0.5, 0.5));
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.renderProgram, 'model'),
-                            false, model.m.elem);
+        this.renderShader.uniformMatrix4fv('model', model.m.elem);
         this.renderCube(gl);
         
         model = Transform.IDENTITY;
         model = model.mult(Transform.translate(2.0, 0.0, 1.0));
         model = model.mult(Transform.scale(0.5, 0.5, 0.5));
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.renderProgram, 'model'),
-                            false, model.m.elem);
+        this.renderShader.uniformMatrix4fv('model', model.m.elem);
         this.renderCube(gl);
 
         model = Transform.IDENTITY;
         model = model.mult(Transform.translate(-1.0, 0.0, 2.0));
         model = model.mult(Transform.rotate(60.0, new Vec3(1.0, 0.0, 1.0).normalize()));
         model = model.mult(Transform.scale(0.25, 0.25, 0.25));
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.renderProgram, 'model'),
-                            false, model.m.elem);
+        this.renderShader.uniformMatrix4fv('model', model.m.elem);
         this.renderCube(gl);
     }
 

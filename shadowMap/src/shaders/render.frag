@@ -41,17 +41,23 @@ vec4 gammaCorrect(vec4 rgba) {
 const float PI = 3.14159265;
 out vec4 outColor;
 void main() {
-  vec3 sum = vec3(0);
-  float numSamples = 10.;
-
-  for(float i = 0.; i < numSamples; i++) {
-    sum += vec3(1, 0, 0);
-  }
-
-  vec3 color = vec3(1);
+  vec3 color = Normal;
   vec3 normal = normalize(Normal);
   vec3 lightColor = vec3(0.3);
   vec3 ambient = 0.3 * lightColor;
-  
-  outColor = gammaCorrect(vec4(sum / numSamples, 1.0));
+  vec3 lightDir = normalize(lightPos - FragPos);
+  float diff = max(dot(lightDir, normal), 0.0);
+  vec3 diffuse = diff * lightColor;
+  // specular
+  vec3 viewDir = normalize(viewPos - FragPos);
+  vec3 reflectDir = reflect(-lightDir, normal);
+  float spec = 0.0;
+  vec3 halfwayDir = normalize(lightDir + viewDir);
+  spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+  vec3 specular = spec * lightColor;
+  // calculate shadow
+  float shadow = 0.;//ShadowCalculation(fs_in.FragPosLightSpace);
+  vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
+
+  outColor = vec4(lighting, 1.0);
 }
