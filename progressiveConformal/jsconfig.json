@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "target": "ESNext",
+        "moduleResolution": "node",
+        "baseUrl": "./",
+        "path": {
+            "*": ["node_modules/*", "src/*"],
+            "*.frag": ["src/shaders/*.frag"],
+            "*.vert": ["src/shaders/*.vert"]
+        }
+    },
+    "include": ["src/**/*"]
+}
