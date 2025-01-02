@@ -107,7 +107,7 @@ export function CreateTexture(gl, width, height, internalFormat, format, type) {
  * @param {Number} height
  * @param {GLenum} type
  * @returns {WebGLTexture}
- */3
+ */
 export function CreateRGBTexture(gl, width, height, type) {
     return CreateTexture(gl, width, height, gl.RGB, gl.RGB, type);
 }
@@ -208,7 +208,7 @@ export function CreateRGBAUnsignedByteTextures(gl, width, height, num) {
  * @returns {WebGLTexture}
  */
 export function CreateRGBAFloatTexture(gl, width, height) {
-    return CreateTexture(gl, width, height, gl.RGBA16F, gl.RGBA, gl.FLOAT);
+    return CreateTexture(gl, width, height, gl.RGBA32F, gl.RGBA, gl.FLOAT);
 }
 
 /**

@@ -8,7 +8,9 @@
             "*": ["node_modules/*", "src/*"],
             "*.frag": ["src/shaders/*.frag"],
             "*.vert": ["src/shaders/*.vert"]
-        }
+        },
+        "types": ["vite/client"]
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*"],
+    "exclude": ["**/*~", "**/node_modules", "**/.git"]
 }
