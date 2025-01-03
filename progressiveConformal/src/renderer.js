@@ -1,9 +1,9 @@
 import * as GLUtils from './glUtils.js';
 import RENDER_VERTEX from './shaders/render.vert?raw';
 import RENDER_FRAGMENT from './shaders/render.frag?raw';
-import RENDER_TEX from './shaders/tris.frag?raw';
-import CHECKER_IMG_URL from './texture/checker.png';
-import CONFORMAL_FRAG from './shaders/computeConformal.frag?raw';
+import RENDER_TEX from './shaders/circle.frag?raw';
+import CHECKER_IMG_URL from './texture/uvgrid.png';
+import CONFORMAL_FRAG from './shaders/rectToCircle.frag?raw';
 
 export default class Renderer {
     /**
@@ -45,9 +45,11 @@ export default class Renderer {
             2,
         );
 
-        this.gl.getExtension("EXT_color_buffer_float");
-        this.gl.getExtension("OES_texture_float_linear");
+        this.gl.getExtension('EXT_color_buffer_float');
+        this.gl.getExtension('OES_texture_float_linear');
 
+        this.conformalWidth = 1024;
+        this.conformalHeight = 1024;
         this.conformalProgram = Renderer.createProgram(
             this.gl,
             CONFORMAL_FRAG,
@@ -55,19 +57,21 @@ export default class Renderer {
         );
         this.conformalMapTextures = GLUtils.CreateRGBAFloatTextures(
             this.gl,
-            this.canvas.width,
-            this.canvas.height,
+            this.conformalWidth,
+            this.conformalHeight,
             2,
         );
-        const initialData = new Uint8Array(this.canvas.width * this.canvas.height * 4);
+        const initialData = new Uint8Array(
+            this.canvas.width * this.canvas.height * 4,
+        );
         for (const t of this.conformalMapTextures) {
             this.gl.bindTexture(this.gl.TEXTURE_2D, t);
             this.gl.texImage2D(
                 this.gl.TEXTURE_2D,
                 0,
                 this.gl.RGBA32F,
-                this.canvas.width,
-                this.canvas.height,
+                this.conformalWidth,
+                this.conformalHeight,
                 0,
                 this.gl.RGBA,
                 this.gl.FLOAT,
@@ -76,7 +80,12 @@ export default class Renderer {
             this.gl.bindTexture(this.gl.TEXTURE_2D, null);
         }
 
-        this.checkerTexture = GLUtils.CreateRGBAFloatTextures(this.gl, 1, 1, 1)[0];
+        this.checkerTexture = GLUtils.CreateRGBAFloatTextures(
+            this.gl,
+            1,
+            1,
+            1,
+        )[0];
         const img = new Image();
         img.src = CHECKER_IMG_URL;
         img.addEventListener('load', () => {
@@ -111,12 +120,13 @@ export default class Renderer {
         return program;
     }
 
-
     /**
      * @param {Array<WebGLTexture>} textures
+     * @param {number} width
+     * @param {number} height
      * @param {WebGLProgram} program
      */
-    setUniformValues(textures, program) {
+    setUniformValues(textures, width, height, program) {
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, textures[0]);
         this.gl.uniform1i(
@@ -127,17 +137,14 @@ export default class Renderer {
         this.gl.activeTexture(this.gl.TEXTURE1);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.checkerTexture);
         this.gl.uniform1i(
-            this.gl.getUniformLocation(
-                program,
-                'u_checkerTexture',
-            ),
+            this.gl.getUniformLocation(program, 'u_checkerTexture'),
             1,
         );
 
         this.gl.uniform2f(
             this.gl.getUniformLocation(program, 'u_resolution'),
-            this.canvas.width,
-            this.canvas.height,
+            width,
+            height,
         );
 
         this.gl.uniform2fv(
@@ -170,12 +177,17 @@ export default class Renderer {
      * @param {Array<WebGLTexture>} textures
      * @param {number} width
      * @param {number} height
+     * @param {number} numRepeat
      */
-    computeConformal(textures, width, height) {
+    computeConformal(textures, width, height, numRepeat) {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.conformalFrameBuffer);
         this.gl.viewport(0, 0, width, height);
         this.gl.useProgram(this.conformalProgram);
-        this.setUniformValues(textures, this.conformalProgram);
+        this.setUniformValues(textures, width, height, this.conformalProgram);
+        this.gl.uniform1f(
+            this.gl.getUniformLocation(this.conformalProgram, 'u_numRepeat'),
+            numRepeat,
+        );
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
         this.gl.vertexAttribPointer(
             this.renderVAttrib,
@@ -207,12 +219,15 @@ export default class Renderer {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.texturesFrameBuffer);
         this.gl.viewport(0, 0, width, height);
         this.gl.useProgram(this.renderTexProgram);
-        this.setUniformValues(textures, this.renderTexProgram);
+        this.setUniformValues(textures, width, height, this.renderTexProgram);
 
         this.gl.activeTexture(this.gl.TEXTURE2);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.conformalMapTextures[0]);
         this.gl.uniform1i(
-            this.gl.getUniformLocation(this.renderTexProgram, 'u_conformalTexture'),
+            this.gl.getUniformLocation(
+                this.renderTexProgram,
+                'u_conformalTexture',
+            ),
             2,
         );
 
@@ -265,14 +280,15 @@ export default class Renderer {
     }
 
     render() {
-        if(this.confoRepeat < 100) {
-            this.computeConformal(
-                        this.conformalMapTextures,
-                        this.canvas.width,
-                        this.canvas.height,
-            );
-            this.confoRepeat++;
-        }
+        //if(this.confoRepeat < 200) {
+        this.computeConformal(
+            this.conformalMapTextures,
+            this.conformalWidth,
+            this.conformalHeight,
+            this.confoRepeat
+        );
+        this.confoRepeat++;
+        //}
 
         this.renderToTexture(
             this.renderTextures,
